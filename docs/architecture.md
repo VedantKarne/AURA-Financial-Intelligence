@@ -19,6 +19,7 @@ Raw Transcripts (TXT)
         ↓
 [ 4. FastAPI + Next.js Frontend ]  →  Premium Chat Cockpit
 ```
+👉 **[View the Detailed RAG Ecosystem Flowchart Here](detailed_rag_architecture.md)**
 
 ---
 
