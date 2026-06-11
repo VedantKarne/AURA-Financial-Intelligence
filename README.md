@@ -90,9 +90,12 @@ cd frontend && npm install && npm run dev
 - **Cross-Encoder Reranking**: Local `ms-marco-MiniLM-L-6-v2` scores `(query, passage)` pairs at deep interaction level
 
 ### 🤖 Multi-Agent Orchestration
-- **LangGraph state machine**: Stateful cyclic ReAct agent with three tools: `rag_search`, `get_kpis`, `generate_report_sections`
-- **Persistent session memory**: `MemorySaver` checkpointer binds full conversation threads per UUID session
-- **Anti-hallucination history filter**: Strips past `ToolMessage` artifacts before each LLM call — forces fresh tool invocations every turn
+AURA divides cognitive labor among specialized, autonomous sub-systems rather than relying on a single prompt:
+- **The Orchestrator Agent (Manager)**: The LangGraph state machine using the ReAct paradigm to reason and route queries to specialized tool agents.
+- **The Research Agent (`rag_search`)**: Handles qualitative data. It uses its own Query Router, Query Transformer, and a dedicated Synthesis LLM to format markdown tables and enforce citation rules independently of the Manager.
+- **The Data Analyst Agent (`get_kpis`)**: Interacts directly with the SQLite database via Pydantic-validated Groq structured outputs to fetch precise quantitative metrics without hallucination.
+- **The Writer Agent (`generate_report_sections`)**: Coordinates with both the Research and Analyst agents to synthesize comprehensive investment briefs.
+- **Anti-Hallucination History Filter**: Strips past `ToolMessage` artifacts from the shared state memory before each LLM call to ensure fresh tool invocations.
 
 ### ⚖️ Fair Multi-Entity RAG
 - **Strict quota allocation**: Guarantees `k // n_companies` document slots per company — prevents entity starvation
