@@ -290,6 +290,8 @@ flowchart TD
     classDef llm fill:#f3e8ff,stroke:#a855f7,stroke-width:2px,color:#581c87
     classDef answer fill:#ecfdf5,stroke:#059669,stroke-width:2px,color:#064e3b,font-weight:bold
 
+    classDef decision fill:#fef08a,stroke:#ca8a04,stroke-width:2px,color:#854d0e
+
     subgraph Offline_Ingestion ["Offline Ingestion"]
         direction TB
         A["1. Documents<br/>(Raw Transcripts)"]:::doc --> B["2. Chunking<br/>(RCTS & Boilerplate Removal)"]:::chunk
@@ -297,15 +299,35 @@ flowchart TD
         C --> D[("4. Vector DB (HNSW)<br/>ChromaDB & BM25Okapi")]:::db
     end
 
-    subgraph Online_RAG_Pipeline ["Online RAG Pipeline"]
+    subgraph Online_RAG_Pipeline ["Online RAG Pipeline & Conditional Routing"]
         direction TB
-        Q["5. User Query"]:::query --> R["6. Query Rewrite & Multi-Query<br/>(History Context & Expansion)"]:::query
-        R --> S["7. Dense Search + BM25<br/>(Parallel Hybrid Retrieval)"]:::search
-        D -.->|"Vector & Sparse Matches"| S
-        S --> T["8. RRF<br/>(Reciprocal Rank Fusion)"]:::rrf
-        T --> U["9. Cross Encoder<br/>(ms-marco-MiniLM-L-6-v2)"]:::rerank
-        U --> V["10. Top Context<br/>(Entity Quota & Round-Robin Fill)"]:::context
-        V --> W["11. LLM<br/>(qwen/qwen3-32b)"]:::llm
+        Q["5. User Query"]:::query --> RCheck{"History<br/>Exists?"}:::decision
+        RCheck -->|"Yes"| R["6. Query Rewrite / Multi-Query<br/>(History Context & Expansion)"]:::query
+        RCheck -->|"No"| Route{"Intent Router"}:::decision
+        R --> Route
+        
+        Route -->|"KPI / Comparison"| SQL[("SQLite DB")]:::db
+        Route -->|"Qualitative RAG"| MCheck{"Multi-Company<br/>Targeted?"}:::decision
+        
+        MCheck -->|"No"| S1["7a. Dense Search + BM25<br/>(Standard Retrieval)"]:::search
+        MCheck -->|"Yes"| S2["7b. Dense Search + BM25<br/>(3x Per-Entity Buffer)"]:::search
+        
+        D -.->|"Vector & Sparse Matches"| S1
+        D -.->|"Vector & Sparse Matches"| S2
+        
+        S1 --> T1["8. RRF<br/>(Reciprocal Rank Fusion)"]:::rrf
+        S2 --> T2["8. RRF<br/>(Reciprocal Rank Fusion)"]:::rrf
+        
+        T1 --> U1["9a. Cross Encoder<br/>(ms-marco-MiniLM-L-6-v2)"]:::rerank
+        T2 --> U2["9b. Cross Encoder<br/>per Entity Pool"]:::rerank
+        
+        U1 --> V1["10a. Top Context<br/>(Slice Top-K)"]:::context
+        U2 --> V2["10b. Top Context<br/>(Entity Quota & Round-Robin Fill)"]:::context
+        
+        V1 --> W["11. LLM<br/>(qwen/qwen3-32b)"]:::llm
+        V2 --> W
+        SQL -->|"Synthesized Metrics"| W
+        
         W --> X["12. Answer<br/>(Cited & Formatted Markdown)"]:::answer
     end
 ```
