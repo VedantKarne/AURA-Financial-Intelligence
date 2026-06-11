@@ -60,7 +60,8 @@ def rag_search(
 ) -> str:
     """Search earnings call transcripts using hybrid RAG retrieval.
     Use this tool for qualitative questions, narrative summaries, and risk analysis.
-    IMPORTANT: If the user asks about 'all companies', comparisons, or multiple entities, DO NOT specify the `company` argument. The underlying retrieval system automatically detects and handles multi-entity queries natively.
+    IMPORTANT: If the user asks about 'all companies', comparisons, or multiple entities, DO NOT specify the `company` argument. 
+    CRITICAL: You MUST preserve words like 'compare', 'all companies', or list out the company names in the `query` argument itself so the retrieval system knows to fetch equal chunks for each company natively. Do not strip them out!
     """
     thread_id = config.get("configurable", {}).get("thread_id", "default") if config else "default"
     

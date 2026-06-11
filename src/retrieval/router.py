@@ -37,8 +37,10 @@ class QueryRouter:
         known_companies = ["Apple", "Microsoft", "Nvidia"]
         
         # Check if user query refers to all companies
-        all_companies_phrases = ["all companies", "across companies", "each company", "every company", "companies'"]
-        if any(phrase in query_lower for phrase in all_companies_phrases):
+        all_companies_phrases = ["all companies", "across companies", "each company", "every company", "companies'", "companies", "compare", "comparison", "versus", "vs"]
+        # Make sure "vs" is matched as a word boundary, but simple `in` works for now since it usually appears with spaces like " vs ". 
+        # Actually, let's just use the exact phrases that the LLM might output.
+        if any(phrase in query_lower for phrase in ["all companies", "across companies", "each company", "every company", "companies'", "companies", "compare", "comparison", " vs ", "versus"]):
             return known_companies
             
         # Check specific company mentions
@@ -57,7 +59,7 @@ class QueryRouter:
         detected = self.detect_entities(query)
         is_multi = len(detected) > 1 or any(
             phrase in query.lower() 
-            for phrase in ["all companies", "compare", "across companies"]
+            for phrase in ["all companies", "compare", "across companies", "each company", "every company", "companies"]
         )
         return is_multi, detected
 
