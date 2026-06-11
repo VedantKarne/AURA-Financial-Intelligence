@@ -18,7 +18,7 @@
 [![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?style=for-the-badge&logo=docker&logoColor=white)](https://docker.com)
 [![License](https://img.shields.io/badge/License-MIT-10B981?style=for-the-badge)](LICENSE)
 
-> **Not a ChatGPT wrapper. Not a demo. A precision-engineered, Multi-Agent RAG system that solves the hallucination and entity-starvation problems that break standard LLM pipelines — built for Apple, Microsoft & Nvidia earnings intelligence (Q1 2023 – Q4 2024)(Kaggle dataset).**
+> **A precision-engineered, Multi-Agent RAG system that solves the hallucination and entity-starvation problems that break standard LLM pipelines — built for Apple, Microsoft & Nvidia earnings intelligence (Q1 2023 – Q4 2024)(Kaggle dataset).**
 
 </div>
 
