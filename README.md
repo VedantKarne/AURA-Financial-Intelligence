@@ -11,9 +11,34 @@
 
 **A production-grade Multi-Agent RAG system for querying earnings call transcripts across Apple, Microsoft & Nvidia (Q1 2023 – Q4 2024) with a premium dark-luxury financial intelligence cockpit.**
 
-[Quick Start](#-quick-start) • [Features](#-features) • [Architecture](#-architecture) • [Documentation](#-documentation) • [Deployment](#️-deployment)
-
 </div>
+
+---
+
+## 🌟 System Maturity & Selling Points
+AURA is an **enterprise-ready system** engineered to solve the most difficult edge cases in AI development:
+- **Zero-Hallucination Guardrails**: Decouples quantitative data (SQL) from qualitative data (Vectors), ensuring financial KPIs are 100% accurate.
+- **Fair Multi-Entity RAG**: Custom 3-layer quota allocation completely eliminates "entity starvation" when comparing multiple companies.
+- **Scale-Invariant Hybrid Search**: Reciprocal Rank Fusion (RRF) flawlessly merges dense cosine vectors with sparse BM25 scores.
+- **Cross-Encoder Reranking**: Applies deep semantic alignment between query and passage, outperforming traditional cosine similarity.
+- **Stateful Memory & Anti-Hallucination Filter**: LangGraph session UUIDs maintain conversation history, while a custom filter strips stale tool artifacts to force fresh AI reasoning on every turn.
+
+---
+
+## 📑 Table of Contents
+
+- [🌟 System Maturity & Selling Points](#-system-maturity--selling-points)
+- [🛑 The Problem We Solve](#-the-problem-we-solve)
+- [📥 Quick Start](#-quick-start)
+- [📺 Platform Preview](#-platform-preview)
+- [✨ Features](#-features)
+- [🏗️ Architecture](#️-architecture)
+- [📚 Documentation](#-documentation)
+- [🛠️ Tech Stack](#️-tech-stack)
+- [🚀 Deployment](#️-deployment)
+- [📈 Phase Changelog](#-phase-changelog)
+- [💡 Engineering Highlights](#-engineering-highlights)
+- [📁 Project Structure](#-project-structure)
 
 ---
 
@@ -23,29 +48,6 @@
 **AURA** solves this enterprise-grade challenge. By employing a **Multi-Agent RAG Architecture**, AURA isolates qualitative analysis (via Hybrid RAG + Cross-Encoders) from quantitative extraction (via strict SQLite metrics), guaranteeing zero-hallucination intelligence and unbiased multi-company comparisons.
 
 👉 **[Read the Full Problem Statement & Market Value Here](docs/problem_statement.md)**
-
----
-
-## 📺 Platform Preview
-
-> A premium dark-luxury financial intelligence cockpit featuring AI chat, KPI analytics, and investment brief generation.
-
-```
-┌─ AURA Intelligence Platform ─────────────────────────────────────────────────┐
-│  [Intelligence Chat] [KPI Analytics] [Intelligence Brief]                    │
-├──────────────────────┬───────────────────────────────────────────────────────┤
-│  Intelligence Tuning │                                                       │
-│  ─────────────────── │  AI: Apple's Q3 2024 guidance projects gross margin   │
-│  Response Richness   │  between 45.5% – 46.5%. The June quarter delivered   │
-│  ◄──────●──────► 12  │  Services growth of 14% YoY [Apple | Q3 | 2024 |    │
-│                      │  summary]. iPhone revenue exceeded expectations at    │
-│  Query History       │  USD 39.3B despite FX headwinds [Apple | Q3 | 2024 | │
-│  ○ Compare CapEx...  │  transcript].                                         │
-│  ○ Summarize Q3...   │                                                       │
-│                      │  ☀ Ask about company risks, earnings trends...   ▷   │
-│  [Reset Conv.]       │                                                       │
-└──────────────────────┴───────────────────────────────────────────────────────┘
-```
 
 ---
 
@@ -77,17 +79,26 @@ cd frontend && npm install && npm run dev
 
 ---
 
-## Table of Contents
+## 📺 Platform Preview
 
-- [Features](#-features)
-- [Architecture](#-architecture)
-- [Quick Start](#-quick-start)
-- [Deployment](#️-deployment)
-- [Documentation](#-documentation)
-- [Tech Stack](#️-tech-stack)
-- [Phase Changelog](#-phase-changelog)
-- [Engineering Highlights](#-engineering-highlights)
-- [Project Structure](#-project-structure)
+> A premium dark-luxury financial intelligence cockpit featuring AI chat, KPI analytics, and investment brief generation.
+
+```
+┌─ AURA Intelligence Platform ─────────────────────────────────────────────────┐
+│  [Intelligence Chat] [KPI Analytics] [Intelligence Brief]                    │
+├──────────────────────┬───────────────────────────────────────────────────────┤
+│  Intelligence Tuning │                                                       │
+│  ─────────────────── │  AI: Apple's Q3 2024 guidance projects gross margin   │
+│  Response Richness   │  between 45.5% – 46.5%. The June quarter delivered   │
+│  ◄──────●──────► 12  │  Services growth of 14% YoY [Apple | Q3 | 2024 |    │
+│                      │  summary]. iPhone revenue exceeded expectations at    │
+│  Query History       │  USD 39.3B despite FX headwinds [Apple | Q3 | 2024 | │
+│  ○ Compare CapEx...  │  transcript].                                         │
+│  ○ Summarize Q3...   │                                                       │
+│                      │  ☀ Ask about company risks, earnings trends...   ▷   │
+│  [Reset Conv.]       │                                                       │
+└──────────────────────┴───────────────────────────────────────────────────────┘
+```
 
 ---
 
