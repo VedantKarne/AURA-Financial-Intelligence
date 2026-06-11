@@ -27,12 +27,20 @@ AURA transcends the typical "GenAI wrapper" by engineering robust solutions to t
 
 ---
 
+## 📺 Platform Preview
+
+> A premium dark-luxury financial intelligence cockpit featuring AI chat, KPI analytics, and investment brief generation.
+
+![AURA Intelligence Platform Cockpit](images/Chatbot_Page.png)
+
+---
+
 ## 📑 Table of Contents
 
 - [🌟 What Makes This a Production-Grade MVP](#-what-makes-this-a-production-grade-mvp)
+- [📺 Platform Preview](#-platform-preview)
 - [🛑 The Enterprise Information Bottleneck](#-the-enterprise-information-bottleneck)
 - [📥 Quick Start](#-quick-start)
-- [📺 Platform Preview](#-platform-preview)
 - [✨ Features](#-features)
 - [🏗️ Architecture](#️-architecture)
 - [📚 Documentation](#-documentation)
@@ -78,14 +86,6 @@ cd frontend && npm install && npm run dev
 🌐 Open [http://localhost:3000](http://localhost:3000)
 
 > **Prefer Docker?** → [One-command deployment](#docker-compose-one-command)
-
----
-
-## 📺 Platform Preview
-
-> A premium dark-luxury financial intelligence cockpit featuring AI chat, KPI analytics, and investment brief generation.
-
-![AURA Intelligence Platform Cockpit](images/Chatbot_Page.png)
 
 ---
 
