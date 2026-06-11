@@ -9,7 +9,7 @@
 [![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?style=for-the-badge&logo=docker&logoColor=white)](https://docker.com)
 [![License](https://img.shields.io/badge/License-MIT-10B981?style=for-the-badge)](LICENSE)
 
-> **Not a ChatGPT wrapper. Not a demo. A precision-engineered, Multi-Agent RAG system that solves the hallucination and entity-starvation problems that break standard LLM pipelines — built for Apple, Microsoft & Nvidia earnings intelligence (Q1 2023 – Q4 2024).**
+> **Not a ChatGPT wrapper. Not a demo. A precision-engineered, Multi-Agent RAG system that solves the hallucination and entity-starvation problems that break standard LLM pipelines — built for Apple, Microsoft & Nvidia earnings intelligence (Q1 2023 – Q4 2024)(Kaggle dataset).**
 
 </div>
 
@@ -35,7 +35,7 @@ AURA transcends the typical "GenAI wrapper" by engineering robust, original solu
 
 - 🛡️ **Anti-Hallucination Stateful Memory Filter**: In multi-turn agentic systems, the LLM sees previous `ToolMessage` artifacts in history and "reuses" stale cached data instead of calling tools afresh — producing confident hallucinations. AURA's `filter_messages_for_llm()` actively strips all prior tool artifacts from the LangGraph state before each LLM call, forcing fresh data retrieval on every turn while preserving natural conversation flow.
 
-- 📊 **Table-Safe Citation Architecture**: The citation format `[Apple | Q3 | 2023 | summary]` contains `|` — the markdown table column separator. Embedding it in table cells destroys table structure by adding phantom columns. AURA enforces a numeric-ref system (`[1]`, `[2]`) inside cells with a separate Citation Key section below, enforced at *both* prompt layers.
+- 📊 **Table-Safe Citation Architecture**: The citation format `[Apple | Q3 | 2023 | summary]` contains `|` — the markdown table column separator. Embedding it in table cells destroys table structure by adding phantom columns.
 
 - 🔀 **Scale-Invariant Hybrid Search with Adaptive Candidate Pool Scaling**: Standard RAG hardcodes candidate pool limits (e.g., `20`), causing the cross-encoder reranker to receive an insufficient pool when users request higher context richness. AURA dynamically scales the pool: `candidate_pool_limit = max(20, k + 10)`, ensuring the reranker always has a sufficiently rich pool regardless of the user's slider position.
 
