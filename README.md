@@ -85,22 +85,7 @@ cd frontend && npm install && npm run dev
 
 > A premium dark-luxury financial intelligence cockpit featuring AI chat, KPI analytics, and investment brief generation.
 
-```
-┌─ AURA Intelligence Platform ─────────────────────────────────────────────────┐
-│  [Intelligence Chat] [KPI Analytics] [Intelligence Brief]                    │
-├──────────────────────┬───────────────────────────────────────────────────────┤
-│  Intelligence Tuning │                                                       │
-│  ─────────────────── │  AI: Apple's Q3 2024 guidance projects gross margin   │
-│  Response Richness   │  between 45.5% – 46.5%. The June quarter delivered   │
-│  ◄──────●──────► 12  │  Services growth of 14% YoY [Apple | Q3 | 2024 |    │
-│                      │  summary]. iPhone revenue exceeded expectations at    │
-│  Query History       │  USD 39.3B despite FX headwinds [Apple | Q3 | 2024 | │
-│  ○ Compare CapEx...  │  transcript].                                         │
-│  ○ Summarize Q3...   │                                                       │
-│                      │  ☀ Ask about company risks, earnings trends...   ▷   │
-│  [Reset Conv.]       │                                                       │
-└──────────────────────┴───────────────────────────────────────────────────────┘
-```
+![AURA Intelligence Platform Cockpit](images/Chatbot_Page.png)
 
 ---
 
