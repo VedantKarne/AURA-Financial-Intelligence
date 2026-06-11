@@ -9,7 +9,7 @@
 [![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?style=for-the-badge&logo=docker&logoColor=white)](https://docker.com)
 [![License](https://img.shields.io/badge/License-MIT-10B981?style=for-the-badge)](LICENSE)
 
-**A production-grade Multi-Agent RAG system for querying earnings call transcripts across Apple, Microsoft & Nvidia (Q1 2023 – Q4 2024) with a premium dark-luxury financial intelligence cockpit.**
+> **Not a ChatGPT wrapper. Not a demo. A precision-engineered, Multi-Agent RAG system that solves the hallucination and entity-starvation problems that break standard LLM pipelines — built for Apple, Microsoft & Nvidia earnings intelligence (Q1 2023 – Q4 2024).**
 
 </div>
 
@@ -53,9 +53,13 @@ AURA transcends the typical "GenAI wrapper" by engineering robust solutions to t
 ---
 
 ## 🛑 The Enterprise Information Bottleneck
-*Financial analysts and hedge funds drown in information overload during earnings season. When trying to use standard LLMs to automate research, the industry encounters massive hallucination of financial numbers and "entity starvation" (biased focus on a single company).*
 
-**AURA** solves this enterprise-grade challenge. By employing a **Multi-Agent RAG Architecture**, AURA isolates qualitative analysis (via Hybrid RAG + Cross-Encoders) from quantitative extraction (via strict SQLite metrics), guaranteeing zero-hallucination intelligence and unbiased multi-company comparisons.
+**The Problem:** Financial analysts and hedge funds drown in information overload during earnings season. When trying to use standard LLMs to automate research, two critical failure modes emerge:
+
+- 🔴 **LLM Hallucination** — Models confidently fabricate revenue figures, EPS values, and guidance numbers that never appeared in any transcript.
+- 🔴 **Entity Starvation** — When asked to compare Apple, Microsoft, and Nvidia simultaneously, standard RAG pipelines return 12 Apple chunks, 3 Microsoft chunks, and 0 Nvidia chunks — producing a dangerously biased analysis.
+
+**The Solution:** AURA was engineered specifically to eliminate both failure modes. A **Multi-Agent RAG Architecture** isolates qualitative analysis (Hybrid RAG + Cross-Encoders) from quantitative extraction (strict SQLite KPI database), while a custom 3-Layer Quota Allocator guarantees equal, unbiased context representation for every company.
 
 👉 **[Read the Full Problem Statement & Market Value Here](docs/problem_statement.md)**
 
@@ -92,12 +96,15 @@ cd frontend && npm install && npm run dev
 ## ✨ Features
 
 ### 🔍 Hybrid Retrieval Engine
+
 - **Dual-index search**: Dense vector (ChromaDB + `all-MiniLM-L6-v2`) + sparse keyword (BM25Okapi) running in parallel
 - **Reciprocal Rank Fusion**: Merges ranked candidate lists without score normalization — scale-invariant and consistently outperforms linear combination
 - **Cross-Encoder Reranking**: Local `ms-marco-MiniLM-L-6-v2` scores `(query, passage)` pairs at deep interaction level
 
 ### 🤖 Multi-Agent Orchestration
+
 AURA divides cognitive labor among specialized, autonomous sub-systems rather than relying on a single prompt:
+
 - **The Orchestrator Agent (Manager)**: The LangGraph state machine using the ReAct paradigm to reason and route queries to specialized tool agents.
 - **The Research Agent (`rag_search`)**: Handles qualitative data. It uses its own Query Router, Query Transformer, and a dedicated Synthesis LLM to format markdown tables and enforce citation rules independently of the Manager.
 - **The Data Analyst Agent (`get_kpis`)**: Interacts directly with the SQLite database via Pydantic-validated Groq structured outputs to fetch precise quantitative metrics without hallucination.
@@ -105,17 +112,20 @@ AURA divides cognitive labor among specialized, autonomous sub-systems rather th
 - **Anti-Hallucination History Filter**: Strips past `ToolMessage` artifacts from the shared state memory before each LLM call to ensure fresh tool invocations.
 
 ### ⚖️ Fair Multi-Entity RAG
+
 - **Strict quota allocation**: Guarantees `k // n_companies` document slots per company — prevents entity starvation
 - **3× retrieval buffer**: Fetches `exact_per_entity × 3` candidates per entity before reranking
 - **Round-robin overflow fill**: Remaining budget allocated cyclically across all companies
 - **Entity-grouped context**: Apple → MSFT → Nvidia ordering combats LLM primacy bias
 
 ### 📊 Structured KPI Intelligence
+
 - **Groq structured output**: Extracts Revenue, EPS, Gross Margin, Guidance, Net Income via Pydantic-validated LLM calls
 - **SQLite database**: `data/finance_kpis.db` stores all structured metrics for instant query
 - **KPI Analytics Dashboard**: YoY chevron indicators, quarterly metric cards, company selector
 
 ### 💅 Premium Cockpit UI
+
 - **Three-panel interface**: Intelligence Chat · KPI Analytics · Investment Brief Generator
 - **Animated sun icon**: 8s idle spin → 3s active spin + expanding pulse halo when typing
 - **Citation bubble tooltips**: Hover any `[Company | Q | Year | Section]` reference for source snippet
@@ -288,20 +298,25 @@ Explore the detailed technical documentation in the [`docs/`](docs/) directory:
 
 Building a production-grade AI system requires moving beyond simple API wrappers to solve the edge-case challenges that break standard implementations. This section outlines the core architectural hurdles encountered while building AURA, and the specific engineering solutions developed to guarantee enterprise-level reliability, fairness, and zero-hallucination accuracy.
 
-**Handling Single-Line Transcripts**  
+📄 **Handling Single-Line Transcripts**
+
 Source files are 40–60KB single-line blobs. The chunker splits at the `[ ` section boundary marker first, then applies sentence-priority RCTS separators (`. ` → `? ` → `! ` → `; `) to preserve financial figure context across chunk boundaries.
 
-**Preventing Company Starvation**  
-For "Compare risks across Apple, Microsoft, Nvidia" — naive retrieval returns 12 Apple chunks, 3 Microsoft, 0 Nvidia. The fix: 3× per-entity retrieval buffer → per-entity reranking → strict quota allocation → round-robin overflow fill → entity-grouped context ordering.
+⚖️ **Preventing Company Starvation**
 
-**Two-LLM Synthesis Gap**  
+For *"Compare risks across Apple, Microsoft, Nvidia"* — naive retrieval returns 12 Apple chunks, 3 Microsoft, 0 Nvidia. The fix: **3× per-entity retrieval buffer → per-entity reranking → strict quota allocation → round-robin overflow fill → entity-grouped context ordering.**
+
+🔗 **Two-LLM Synthesis Gap**
+
 The inner RAG LLM and outer agent synthesis LLM are independently instructed. All formatting rules (table generation, citation safety, equal entity coverage) are duplicated at both `prompts.py` and `server.py` — rules at only one layer are silently overridden by the other.
 
-**Table-Safe Citations**  
+📊 **Table-Safe Citations**
+
 `[Apple | Q3 | 2023 | summary]` contains `|` which markdown renders as table column separators. Inside table cells, the system uses `[1]`, `[2]` numeric refs with a Citation Key section below — enforced via both prompt layers.
 
-**Auto-Scaling K for Multi-Entity Queries**  
-`k=6` with 3 companies gives 2 chunks per company — too sparse. The agent auto-scales: `effective_k = min(24, max(GLOBAL_K, n_entities × 6))`.
+📈 **Auto-Scaling K for Multi-Entity Queries**
+
+`k=6` with 3 companies gives 2 chunks per company — critically sparse for fair coverage. The agent auto-scales dynamically: `effective_k = min(24, max(GLOBAL_K, n_entities × 6))`.
 
 📖 **[See all engineering challenges →](docs/engineering_challenges.md)**
 
@@ -344,6 +359,8 @@ Finance_RAG_Project/
 
 ## 🤝 Contributing
 
+Contributions are welcome — whether it's extending the dataset to more companies, adding new retrieval strategies, improving the frontend, or writing evaluation benchmarks.
+
 1. Fork the repository
 2. Create your feature branch: `git checkout -b feature/your-feature`
 3. Commit your changes: `git commit -m 'Add your feature'`
@@ -370,8 +387,8 @@ This project is licensed under the **MIT License**.
 
 <div align="center">
 
-**Built with precision for financial intelligence.**
+**Seven phases of iteration. One mission: financial intelligence without hallucination.**
 
-[Documentation](docs/) • [Walkthrough](walkthrough.md) • [Engineering Logs](features_and_learnings/)
+[Documentation](docs/) • [Walkthrough](walkthrough.md) • [Engineering Logs](features_and_learnings/) • [Detailed RAG Architecture](docs/detailed_rag_architecture.md)
 
 </div>
