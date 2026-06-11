@@ -301,6 +301,8 @@ Explore the detailed technical documentation in the [`docs/`](docs/) directory:
 
 ## 💡 Engineering Highlights
 
+Building a production-grade AI system requires moving beyond simple API wrappers to solve the edge-case challenges that break standard implementations. This section outlines the core architectural hurdles encountered while building AURA, and the specific engineering solutions developed to guarantee enterprise-level reliability, fairness, and zero-hallucination accuracy.
+
 **Handling Single-Line Transcripts**  
 Source files are 40–60KB single-line blobs. The chunker splits at the `[ ` section boundary marker first, then applies sentence-priority RCTS separators (`. ` → `? ` → `! ` → `; `) to preserve financial figure context across chunk boundaries.
 
