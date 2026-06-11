@@ -2,10 +2,19 @@
 
 # 📊 AURA — Financial Earnings Intelligence Platform
 
+<!-- SEO Keywords: Multi-Agent RAG, LangGraph, FastAPI, Next.js, ChromaDB, Financial AI, Earnings Calls Analysis, Groq, Qwen3-32B, HuggingFace, Reciprocal Rank Fusion, Cross-Encoder, AI Agent, SQLite, TypeScript, React -->
+
 [![Python](https://img.shields.io/badge/Python-3.11%2B-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
 [![Next.js](https://img.shields.io/badge/Next.js-14-000000?style=for-the-badge&logo=nextdotjs&logoColor=white)](https://nextjs.org)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.0-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
-[![LangGraph](https://img.shields.io/badge/LangGraph-Agent-FF6B35?style=for-the-badge&logo=langchain&logoColor=white)](https://langchain-ai.github.io/langgraph/)
+<br>
+[![LangGraph](https://img.shields.io/badge/LangGraph-Multi--Agent-FF6B35?style=for-the-badge&logo=langchain&logoColor=white)](https://langchain-ai.github.io/langgraph/)
+[![Groq](https://img.shields.io/badge/Groq-Qwen_32B-F55036?style=for-the-badge)](https://groq.com)
+[![HuggingFace](https://img.shields.io/badge/HuggingFace-Cross--Encoders-FFD21E?style=for-the-badge&logo=huggingface&logoColor=black)](https://huggingface.co)
+<br>
+[![ChromaDB](https://img.shields.io/badge/ChromaDB-Vector_Store-FF69B4?style=for-the-badge)](https://trychroma.com/)
+[![SQLite](https://img.shields.io/badge/SQLite-Structured_Data-003B57?style=for-the-badge&logo=sqlite&logoColor=white)](https://sqlite.org/)
 [![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?style=for-the-badge&logo=docker&logoColor=white)](https://docker.com)
 [![License](https://img.shields.io/badge/License-MIT-10B981?style=for-the-badge)](LICENSE)
 
