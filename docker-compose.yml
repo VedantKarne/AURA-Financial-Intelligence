@@ -7,6 +7,7 @@ services:
       - "8000:8000"
     volumes:
       - ./data:/app/data
+      - ./raw_data:/app/raw_data
     env_file:
       - config/.env
     restart: always

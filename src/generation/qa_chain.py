@@ -100,7 +100,7 @@ def get_router():
     if _router is None:
         ensure_env_loaded()
         from src.retrieval.router import QueryRouter
-        # Always use the fast, high-rate-limit llama-3.1-8b model for metadata routing
+        # Always use the fast, high-rate-limit qwen/qwen3-32b model for metadata routing
         api_key = os.getenv("GROQ_API_KEY")
         llm_router = ChatGroq(
             model="qwen/qwen3-32b",

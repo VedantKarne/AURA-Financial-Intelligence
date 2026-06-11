@@ -19,7 +19,7 @@ Usage
   python -m src.ingestion.pipeline
 
   # Or with explicit args:
-  python -m src.ingestion.pipeline --data-dir dataset_2/... --db-path data/chroma_db
+  python -m src.ingestion.pipeline --data-dir raw_data/... --db-path data/chroma_db
 """
 
 from __future__ import annotations
@@ -61,7 +61,7 @@ logger = logging.getLogger(__name__)
 # ---------------------------------------------------------------------------
 DEFAULT_DATA_DIR = (
     PROJECT_ROOT
-    / "dataset_2"
+    / "raw_data"
     / "Earning_Call_Transcripts"
     / "cleaned_ECTs_dataset"
 )

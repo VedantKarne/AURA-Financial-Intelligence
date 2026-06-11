@@ -5,7 +5,7 @@
 
 # --- Paths ---
 paths:
-  data_dir: "dataset_2/Earning_Call_Transcripts/cleaned_ECTs_dataset"
+  data_dir: "raw_data/Earning_Call_Transcripts/cleaned_ECTs_dataset"
   companies:
     - Apple
     - Microsoft

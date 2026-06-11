@@ -127,7 +127,7 @@ flowchart TB
 
     subgraph Data_Ingestion_Pipeline [1. Data Ingestion Pipeline]
         direction TB
-        A1[Raw processed transcripts<br/>dataset_2/**/*.txt] --> A2[File Parser<br/>file_parser.py]
+        A1[Raw processed transcripts<br/>raw_data/**/*.txt] --> A2[File Parser<br/>file_parser.py]
         A2 --> A3[Semantic Chunker & Boilerplate Cleaner<br/>chunker.py]
         A3 --> A4[Local Embeddings Generator<br/>embedder.py]
     end

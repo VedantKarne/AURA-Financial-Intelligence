@@ -54,7 +54,7 @@ python -m src.ingestion.pipeline
 ```
 
 **What this does:**
-- Discovers all 23 `.txt` transcript files in `dataset_2/`
+- Discovers all 23 `.txt` transcript files in `raw_data/`
 - Cleans boilerplate (operator instructions, Safe Harbor disclaimers)
 - Chunks text into ~1,434 semantic passages
 - Computes 384-dimensional embeddings using `all-MiniLM-L6-v2` locally

@@ -62,7 +62,7 @@ Each phase produces a **fully working, demonstrable system** before the next beg
 ```
 Finance_RAG_Project/
 │
-├── dataset_2/                              # Raw data (existing)
+├── raw_data/                               # Raw data (existing)
 │   └── Earning_Call_Transcripts/
 │       └── cleaned_ECTs_dataset/
 │           ├── Apple/
