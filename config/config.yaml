@@ -1,0 +1,75 @@
+# ============================================================
+# Financial Earnings Intelligence Platform
+# config/config.yaml — Central configuration
+# ============================================================
+
+# --- Paths ---
+paths:
+  data_dir: "dataset_2/Earning_Call_Transcripts/cleaned_ECTs_dataset"
+  companies:
+    - Apple
+    - Microsoft
+    - Nvidia
+  chroma_db_dir: "data/chroma_db"
+  bm25_index_dir: "data/bm25_index"
+  kpi_db_path: "data/kpi_store.db"
+  evaluation_dir: "evaluation"
+
+# --- Ingestion ---
+ingestion:
+  # Section split marker (marks start of live transcript)
+  section_marker: "[ "
+
+  # Chunking (RCTS)
+  chunk_size: 1000          # characters (~250 tokens)
+  chunk_overlap: 200        # characters (~50 tokens)
+  separators:
+    - ". "
+    - "? "
+    - "! "
+    - "; "
+    - " "
+    - ""
+
+  # Ticker → Company mapping
+  ticker_map:
+    aapl: "Apple"
+    msft: "Microsoft"
+    nvda: "Nvidia"
+
+# --- Embeddings ---
+embeddings:
+  model_name: "sentence-transformers/all-MiniLM-L6-v2"
+  device: "cpu"
+  normalize: true
+  dimensions: 384
+  batch_size: 64            # chunks per embedding batch
+
+# --- Vector Store ---
+vector_store:
+  collection_name: "earnings_transcripts"
+  distance_metric: "cosine"
+  n_results: 5              # top-k chunks to retrieve
+
+# --- LLM (Groq) ---
+llm:
+  model: "qwen/qwen3-32b"   # Groq model
+  temperature: 0.0          # deterministic for financial facts
+  max_tokens: 1024
+  # model_fallback: "llama3-8b-8192"   # uncomment as cheap fallback
+
+# --- Retrieval ---
+retrieval:
+  # Phase 1: vector only
+  top_k: 5
+  # Phase 2 additions (unused in Phase 1):
+  bm25_top_k: 20
+  vector_top_k: 20
+  rerank_top_k: 5
+  rrf_k: 60                 # RRF constant
+
+# --- UI ---
+ui:
+  page_title: "Financial Earnings Intelligence"
+  page_icon: "📈"
+  max_chat_history: 10      # messages to keep in session
