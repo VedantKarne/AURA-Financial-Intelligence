@@ -92,20 +92,25 @@ Before hitting the databases, the query goes through `query_transformer.py`:
 - **Query Rewrite**: If conversational history exists, pronouns and temporal contexts are resolved.
 - **Multi-Query Expansion**: For complex comparison trends, the system breaks the query down into sub-queries to retrieve a broader spectrum of context.
 
-### 7. Dense Search + BM25
-The transformed queries run in parallel against both indexes. ChromaDB performs nearest-neighbour search (Dense) while BM25 handles exact keyword intersections (Sparse).
+### 7. Intent Router & Conditional Search (7a / 7b)
+The query is evaluated by the `router.py` Intent Router:
+- **KPI / Comparison (SQLite DB)**: If the query asks for exact numerical comparisons, it directly queries the SQLite KPI database, skipping the vector search.
+- **Qualitative RAG**: Otherwise, it enters the RAG pipeline. If a multi-company query is detected, it forks to **7b**, which applies a massive 3x per-entity search buffer (Dense + BM25) to ensure sufficient context. If it's a single company, it proceeds to **7a** standard hybrid retrieval.
 
 ### 8. RRF (Reciprocal Rank Fusion)
-Handled by `hybrid_retriever.py`. Because Vector scores (cosine distance) and BM25 scores (IDF weights) are on entirely different scales, RRF is used to merge the candidate lists based purely on their rank positions, making the retrieval scale-invariant and highly accurate.
+Handled by `hybrid_retriever.py`. Because Vector scores (cosine distance) and BM25 scores (IDF weights) are on entirely different scales, RRF is used to merge the candidate lists based purely on their rank positions. For multi-entity queries, this happens independently for each entity pool.
 
-### 9. Cross Encoder
-The top 30-40 candidates from the RRF output are passed to a local `cross-encoder/ms-marco-MiniLM-L-6-v2` model in `reranker.py`. Instead of fast vector similarity, this model computes a deep, pairwise semantic interaction between the Query and the Document Chunk, vastly outperforming standard cosine similarity.
+### 9. Cross Encoder (9a / 9b)
+The candidates from the RRF output are passed to a local `cross-encoder/ms-marco-MiniLM-L-6-v2` model in `reranker.py`. 
+- **9a**: Standard reranking for single-company queries.
+- **9b**: Entity-pooled reranking to ensure one company's highly scored chunks don't completely evict another company's chunks from the pool.
 
-### 10. Top Context
-Once reranked, the chunks pass through AURA's custom **3-Layer Quota Allocator**. If the user is asking to compare Apple and Microsoft, the system ensures that the final contextual window is populated with an exact 50/50 split of Apple and Microsoft chunks using a Round-Robin overflow fill, completely eliminating "Entity Starvation".
+### 10. Top Context (10a / 10b)
+- **10a**: Standard Top-K slice for single-company queries.
+- **10b**: AURA's custom **3-Layer Quota Allocator**. It guarantees the final contextual window is populated with an exact quota split (e.g. 50/50 Apple/Microsoft) using a Round-Robin overflow fill, completely eliminating "Entity Starvation".
 
 ### 11. LLM
-The finely-tuned, entity-balanced context is injected into a heavily engineered system prompt. The Groq LPU API calls `qwen/qwen3-32b` with strict instructions governing markdown tables, citation safety (preventing `|` characters in citations), and hallucination guardrails.
+The finely-tuned, entity-balanced context (or the exact SQLite metrics) is injected into a heavily engineered system prompt. The Groq LPU API calls `qwen/qwen3-32b` with strict instructions governing markdown tables, citation safety, and hallucination guardrails.
 
 ### 12. Answer
 The LLM generates the final cited markdown response, which is streamed via FastAPI server-sent events back to the Next.js UI, where it renders beautifully alongside real-time citation tooltip bubbles.
