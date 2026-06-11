@@ -43,8 +43,8 @@ flowchart TD
         Route -->|"KPI / Comparison"| SQL[("SQLite DB")]:::db
         Route -->|"Qualitative RAG"| MCheck{"Multi-Company<br/>Targeted?"}:::decision
         
-        MCheck -->|"No"| S1["7a. Dense Search + BM25<br/>(Standard Retrieval)"]:::search
-        MCheck -->|"Yes"| S2["7b. Dense Search + BM25<br/>(3x Per-Entity Buffer)"]:::search
+        MCheck -->|"No"| S1["7a. Dense Search + BM25<br/>(Active RAG / Auto-Boost k)"]:::search
+        MCheck -->|"Yes"| S2["7b. Dense Search + BM25<br/>(3x Per-Entity Buffer & k_override)"]:::search
         
         D -.->|"Vector & Sparse Matches"| S1
         D -.->|"Vector & Sparse Matches"| S2

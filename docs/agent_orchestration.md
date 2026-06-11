@@ -34,7 +34,7 @@ flowchart TD
 
     Start(["User Request"]) --> InitState["Initialize AgentState: messages list"]
     InitState --> Filter["filter_messages_for_llm<br/>Strip past tool artifacts"]
-    Filter --> Chatbot["chatbot_node<br/>qwen/qwen3-32b evaluates intent"]
+    Filter --> Chatbot["chatbot_node<br/>qwen/qwen3-32b + Quota Fallbacks"]
 
     Chatbot --> RouteCheck{"Tool calls requested?"}
 
@@ -43,8 +43,8 @@ flowchart TD
 
     ToolNode --> ToolBranch{"Which tool?"}
 
-    ToolBranch -->|rag_search| RAGTool["rag_search<br/>Auto-scaled k hybrid RAG"]
-    ToolBranch -->|get_kpis| SQLTool["get_kpis<br/>SQLite KPI query"]
+    ToolBranch -->|rag_search| RAGTool["rag_search<br/>Active RAG (Auto-scaled k & k_override)"]
+    ToolBranch -->|get_kpis| SQLTool["get_kpis<br/>SQLite KPI query + Fallback Directives"]
     ToolBranch -->|generate_report_sections| BriefTool["generate_report_sections<br/>Aggregate RAG + KPIs"]
 
     RAGTool --> AppendState["Append ToolMessage to state"]
