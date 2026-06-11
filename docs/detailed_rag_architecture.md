@@ -2,103 +2,88 @@
 
 > **[← Back to Architecture Overview](./architecture.md)**
 
-This document provides a holistic blueprint of the AURA Financial Intelligence Platform, tracking the data flow from raw unstructured transcripts through the storage, retrieval, orchestration, and presentation layers.
+This document provides a deep-dive blueprint of the complete, end-to-end Retrieval-Augmented Generation (RAG) lifecycle implemented within AURA. 
+
+It maps out the precise flow of data from offline ingestion to the final LLM response, encompassing hybrid search, reciprocal rank fusion, and multi-query expansion.
 
 ---
 
-## The System Ecosystem Flowchart
-
-The following mindmap illustrates the 4 core subsystems of AURA and how they interconnect to provide zero-hallucination, multi-agent financial intelligence.
+## The Complete RAG Flowchart
 
 ```mermaid
-flowchart TB
-    classDef ingestion fill:#e0f2fe,stroke:#0288d1,stroke-width:2px,color:#0369a1,font-weight:bold
-    classDef storage fill:#d1fae5,stroke:#059669,stroke-width:2px,color:#065f46,font-weight:bold
-    classDef logic fill:#fef3c7,stroke:#d97706,stroke-width:2px,color:#78350f,font-weight:bold
-    classDef ui fill:#f5f3ff,stroke:#7c3aed,stroke-width:2px,color:#5b21b6,font-weight:bold
+flowchart TD
+    classDef doc fill:#f8fafc,stroke:#94a3b8,stroke-width:2px,color:#0f172a
+    classDef chunk fill:#e2e8f0,stroke:#64748b,stroke-width:2px,color:#0f172a
+    classDef embed fill:#dbeafe,stroke:#3b82f6,stroke-width:2px,color:#1e3a8a
+    classDef db fill:#d1fae5,stroke:#10b981,stroke-width:2px,color:#064e3b
+    classDef query fill:#fef3c7,stroke:#f59e0b,stroke-width:2px,color:#78350f
+    classDef search fill:#ede9fe,stroke:#8b5cf6,stroke-width:2px,color:#4c1d95
+    classDef rrf fill:#fce7f3,stroke:#ec4899,stroke-width:2px,color:#831843
+    classDef rerank fill:#ffedd5,stroke:#f97316,stroke-width:2px,color:#7c2d12
+    classDef context fill:#e0e7ff,stroke:#6366f1,stroke-width:2px,color:#312e81
+    classDef llm fill:#f3e8ff,stroke:#a855f7,stroke-width:2px,color:#581c87
+    classDef answer fill:#ecfdf5,stroke:#059669,stroke-width:2px,color:#064e3b,font-weight:bold
 
-    subgraph Data_Ingestion_Pipeline ["1. Data Ingestion Pipeline"]
+    subgraph Offline_Ingestion ["Offline Ingestion"]
         direction TB
-        A1["Raw processed transcripts<br/>raw_data/**/*.txt"] --> A2["File Parser<br/>file_parser.py"]
-        A2 --> A3["Semantic Chunker & Boilerplate Cleaner<br/>chunker.py"]
-        A3 --> A4["Local Embeddings Generator<br/>embedder.py"]
+        A["1. Documents<br/>(Raw Transcripts)"]:::doc --> B["2. Chunking<br/>(RCTS & Boilerplate Removal)"]:::chunk
+        B --> C["3. Embeddings<br/>(all-MiniLM-L6-v2)"]:::embed
+        C --> D[("4. Vector DB (HNSW)<br/>ChromaDB & BM25Okapi")]:::db
     end
-    class Data_Ingestion_Pipeline ingestion
 
-    subgraph Dual_Storage_Layer ["2. Dual Storage Layer"]
+    subgraph Online_RAG_Pipeline ["Online RAG Pipeline"]
         direction TB
-        B1[("ChromaDB Vector Store<br/>data/chroma_db")]
-        B2[("BM25 Lexical Index<br/>data/bm25_index")]
-        B3[("SQL KPI Database<br/>data/finance_kpis.db")]
+        Q["5. User Query"]:::query --> R["6. Query Rewrite & Multi-Query<br/>(History Context & Expansion)"]:::query
+        R --> S["7. Dense Search + BM25<br/>(Parallel Hybrid Retrieval)"]:::search
+        D -.->|"Vector & Sparse Matches"| S
+        S --> T["8. RRF<br/>(Reciprocal Rank Fusion)"]:::rrf
+        T --> U["9. Cross Encoder<br/>(ms-marco-MiniLM-L-6-v2)"]:::rerank
+        U --> V["10. Top Context<br/>(Entity Quota & Round-Robin Fill)"]:::context
+        V --> W["11. LLM<br/>(qwen/qwen3-32b)"]:::llm
+        W --> X["12. Answer<br/>(Cited & Formatted Markdown)"]:::answer
     end
-    class Dual_Storage_Layer storage
-
-    A4 -->|"Vector + Metadata Chunks"| B1
-    A3 -->|"Lexical Corpus"| B2
-    A2 -->|"Summary Section Text"| A5["Structured LLM KPI Extractor<br/>kpi_extractor.py"]
-    A5 -->|"Pydantic ORM Models"| B3
-
-    subgraph Intelligence_Core ["3. RAG & Agentic Intelligence Core"]
-        direction TB
-        C1["LangGraph Orchestrator<br/>orchestrator.py"]
-        C2["Agent Tools Wrapper<br/>tools.py"]
-        C3["Query Router & Transformer<br/>router.py & query_transformer.py"]
-        C4["RAG Execution Engine<br/>qa_chain.py"]
-        C5["Local Reranker<br/>reranker.py"]
-        C6["Groq LPU LLM Core<br/>qwen/qwen3-32b"]
-    end
-    class Intelligence_Core logic
-
-    B1 <-->|"Cosine Vector Similarity"| C4
-    B2 <-->|"Lexical Keyword Search"| C4
-    B3 <-->|"SQL Alchemy Queries"| C2
-    C1 <-->|"Tool Executions"| C2
-    C2 <-->|"get_answer"| C4
-    C4 <-->|"Intent Classification"| C3
-    C4 <-->|"Candidate Rescoring"| C5
-    C4 <-->|"Prompt Synthesis & Stream"| C6
-
-    subgraph User_Facing ["4. User Facing Application"]
-        direction TB
-        D1["FastAPI Server Gateway<br/>server.py"]
-        D2["Next.js React Client<br/>frontend/src/app"]
-    end
-    class User_Facing ui
-
-    D2 <-->|"API requests / JSON streams"| D1
-    D1 <-->|"run_agent_query"| C1
-    D1 <-->|"get_kpis / generate-report"| C2
-
-    class A1,A2,A3,A4,A5 ingestion
-    class B1,B2,B3 storage
-    class C1,C2,C3,C4,C5,C6 logic
-    class D1,D2 ui
-    linkStyle default stroke:#334155,stroke-width:2px;
 ```
 
 ---
 
-## Architectural Layer Breakdown
+## Detailed Step-by-Step Explanation
 
-### 1. Data Ingestion Pipeline (Blue)
-The ingestion layer is responsible for converting unstructured walls of text into structured, searchable data.
-- **File Parser (`file_parser.py`)**: Identifies the ticker, company, year, and quarter from filenames.
-- **Chunker (`chunker.py`)**: Slices the massive transcripts using RCTS (Recursive Character Text Splitting) prioritized for sentence terminators (`.`, `?`, `!`) to avoid splitting mid-sentence and ruining financial context. It actively scrubs forward-looking "Safe Harbor" boilerplate language to clean the dataset.
-- **Extractor (`kpi_extractor.py`)**: Uses a separate LLM call mapped strictly to a Pydantic schema to extract the hard numeric KPIs from the "Summary" section of the earnings call, ensuring numbers are completely isolated from text context.
+### 1. Documents
+The pipeline begins with raw, unstructured earnings call transcripts (Apple, Microsoft, Nvidia from Q1 2023 to Q4 2024). These are ingested as massive single-line text blobs.
 
-### 2. Dual Storage Layer (Green)
-AURA deliberately does NOT put all data in one place. It routes data to where it performs best:
-- **ChromaDB**: Holds the `all-MiniLM-L6-v2` dense vectors. Excellent for conceptual questions like *"What is their AI strategy?"*
-- **BM25 Lexical Index**: Holds the sparse lexical index. Excellent for exact-match questions like *"How much Azure revenue did Satya Nadella mention?"*
-- **SQL Database**: Holds the rigid numbers extracted during ingestion. Completely sidesteps LLM hallucination for questions like *"What was Microsoft's EPS in Q2 2024?"*
+### 2. Chunking
+Handled by `chunker.py`. Due to the nature of financial transcripts, standard text splitting destroys numeric context. AURA uses **Recursive Character Text Splitting (RCTS)** prioritized on sentence boundaries (`. `, `? `, `! `) and aggressively filters out forward-looking "Safe Harbor" boilerplate language to increase signal-to-noise ratio.
 
-### 3. RAG & Agentic Intelligence Core (Yellow)
-This is the "Brain" of the platform, built using LangGraph.
-- **LangGraph Orchestrator (`orchestrator.py`)**: Maintains conversational memory using a `MemorySaver` checkpointer. Critically, it scrubs old context out to prevent multi-turn hallucination.
-- **Query Router (`router.py`)**: Dynamically decides which retrieval strategy to use (e.g., should I run an SQL comparison, or should I do a hybrid search?).
-- **RAG Execution Engine (`qa_chain.py`)**: Uses a **3-Layer Quota Allocator** for multi-entity queries. It pulls from both Chroma and BM25, merges the lists using Reciprocal Rank Fusion, and then aggressively reranks them using `ms-marco-MiniLM-L-6-v2` before giving them to the `qwen/qwen3-32b` generation model.
+### 3. Embeddings
+Chunks are passed through the local `sentence-transformers/all-MiniLM-L6-v2` embedding model to generate dense semantic vector representations.
 
-### 4. User-Facing Application (Purple)
-The client delivery mechanism that ties the AI architecture to the human user.
-- **FastAPI Gateway (`server.py`)**: Translates HTTP REST endpoints into internal LangGraph graph executions and streams the JSON chunks back to the client. It also acts as the secondary prompt enforcer for the `TABLE CITATION SAFETY` rule.
-- **Next.js React Client**: A premium dark-luxury frontend that renders the markdown streams (including complex tables), manages the query history via `localStorage`, and displays real-time agent progression steppers.
+### 4. Vector DB (HNSW) & Sparse Index
+Data is simultaneously loaded into two systems:
+- **ChromaDB**: Stores the 384-dimensional dense vectors using HNSW indexing for rapid semantic similarity search.
+- **BM25 Index**: Stores a sparse lexical corpus (`bm25.pkl`) for exact keyword, ticker, and specific numeric value matching.
+
+### 5. User Query
+The user enters a natural language query via the Next.js React frontend.
+
+### 6. Query Rewrite / Multi-Query
+Before hitting the databases, the query goes through `query_transformer.py`:
+- **Query Rewrite**: If conversational history exists, pronouns and temporal contexts are resolved.
+- **Multi-Query Expansion**: For complex comparison trends, the system breaks the query down into sub-queries to retrieve a broader spectrum of context.
+
+### 7. Dense Search + BM25
+The transformed queries run in parallel against both indexes. ChromaDB performs nearest-neighbour search (Dense) while BM25 handles exact keyword intersections (Sparse).
+
+### 8. RRF (Reciprocal Rank Fusion)
+Handled by `hybrid_retriever.py`. Because Vector scores (cosine distance) and BM25 scores (IDF weights) are on entirely different scales, RRF is used to merge the candidate lists based purely on their rank positions, making the retrieval scale-invariant and highly accurate.
+
+### 9. Cross Encoder
+The top 30-40 candidates from the RRF output are passed to a local `cross-encoder/ms-marco-MiniLM-L-6-v2` model in `reranker.py`. Instead of fast vector similarity, this model computes a deep, pairwise semantic interaction between the Query and the Document Chunk, vastly outperforming standard cosine similarity.
+
+### 10. Top Context
+Once reranked, the chunks pass through AURA's custom **3-Layer Quota Allocator**. If the user is asking to compare Apple and Microsoft, the system ensures that the final contextual window is populated with an exact 50/50 split of Apple and Microsoft chunks using a Round-Robin overflow fill, completely eliminating "Entity Starvation".
+
+### 11. LLM
+The finely-tuned, entity-balanced context is injected into a heavily engineered system prompt. The Groq LPU API calls `qwen/qwen3-32b` with strict instructions governing markdown tables, citation safety (preventing `|` characters in citations), and hallucination guardrails.
+
+### 12. Answer
+The LLM generates the final cited markdown response, which is streamed via FastAPI server-sent events back to the Next.js UI, where it renders beautifully alongside real-time citation tooltip bubbles.
