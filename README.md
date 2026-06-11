@@ -15,6 +15,14 @@
 
 ---
 
+## 📺 Platform Preview
+
+> A premium dark-luxury financial intelligence cockpit featuring AI chat, KPI analytics, and investment brief generation.
+
+![AURA Intelligence Platform Cockpit](images/Chatbot_Page.png)
+
+---
+
 ## 🌟 What Makes This a Production-Grade MVP
 AURA transcends the typical "GenAI wrapper" by engineering robust solutions to the most difficult edge-cases in financial AI, as documented in our extensive engineering logs:
 
@@ -24,14 +32,6 @@ AURA transcends the typical "GenAI wrapper" by engineering robust solutions to t
 - **Scale-Invariant Hybrid Search**: Seamlessly fuses dense semantic search (ChromaDB vectors) with exact lexical matching (BM25) using Reciprocal Rank Fusion (RRF), ensuring highly specific metrics and broad qualitative statements are both accurately retrieved.
 - **Cross-Encoder Reranking at Scale**: Rather than trusting cosine similarity, AURA passes candidate chunks through a local `ms-marco-MiniLM-L-6-v2` cross-encoder, fundamentally altering the top-k context to prioritize actual relevance over keyword proximity.
 - **Quantitative vs. Qualitative Decoupling**: AURA routes hard financial metrics to a structured SQLite database (`get_kpis`) while sending qualitative analysis to the vector engine (`rag_search`), protecting against the severe hallucination risks of treating numbers as raw text.
-
----
-
-## 📺 Platform Preview
-
-> A premium dark-luxury financial intelligence cockpit featuring AI chat, KPI analytics, and investment brief generation.
-
-![AURA Intelligence Platform Cockpit](images/Chatbot_Page.png)
 
 ---
 
