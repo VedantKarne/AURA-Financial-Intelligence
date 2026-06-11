@@ -118,6 +118,8 @@ Layer 0:                 Page content
 └──────────────────────────────────────────────────────────────────────────┘
 ```
 
+![AURA Intelligence Platform Cockpit](images/Chatbot_Page.png)
+
 ---
 
 ## Components & Features
