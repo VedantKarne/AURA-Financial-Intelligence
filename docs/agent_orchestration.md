@@ -25,6 +25,42 @@ src/api/
 
 ## LangGraph Graph Structure
 
+```mermaid
+flowchart TD
+    classDef start_end fill:#1e293b,stroke:#0f172a,stroke-width:2px,color:#ffffff,font-weight:bold
+    classDef process fill:#e0f2fe,stroke:#0288d1,stroke-width:2px,color:#0369a1
+    classDef decision fill:#fef3c7,stroke:#d97706,stroke-width:2px,color:#78350f
+    classDef storage fill:#d1fae5,stroke:#059669,stroke-width:2px,color:#065f46
+
+    Start([User Request]) --> InitState[Initialize AgentState: messages list]
+    InitState --> Filter[filter_messages_for_llm<br/>Strip past tool artifacts]
+    Filter --> Chatbot[chatbot_node<br/>qwen/qwen3-32b evaluates intent]
+
+    Chatbot --> RouteCheck{Tool calls requested?}
+
+    RouteCheck -->|Yes| ToolNode[tools_node<br/>Execute triggered tool]
+    RouteCheck -->|No| End([Deliver Final AIMessage])
+
+    ToolNode --> ToolBranch{Which tool?}
+
+    ToolBranch -->|rag_search| RAGTool[rag_search<br/>Auto-scaled k hybrid RAG]
+    ToolBranch -->|get_kpis| SQLTool[get_kpis<br/>SQLite KPI query]
+    ToolBranch -->|generate_report_sections| BriefTool[generate_report_sections<br/>Aggregate RAG + KPIs]
+
+    RAGTool --> AppendState[Append ToolMessage to state]
+    SQLTool --> AppendState
+    BriefTool --> AppendState
+
+    AppendState --> Filter
+
+    class Start,End start_end
+    class InitState,ToolNode process
+    class Chatbot,RAGTool,SQLTool,BriefTool process
+    class RouteCheck,ToolBranch decision
+    class AppendState,Filter storage
+    linkStyle default stroke:#334155,stroke-width:2px
+```
+
 ```python
 # State: a simple message list that grows with each turn
 class AgentState(TypedDict):

@@ -26,6 +26,51 @@ Raw Transcripts (TXT)
 
 The ingestion layer converts raw, single-line earnings call transcript `.txt` files into three indexed storage systems.
 
+```mermaid
+flowchart TD
+    classDef start_end fill:#1e293b,stroke:#0f172a,stroke-width:2px,color:#ffffff,font-weight:bold
+    classDef process fill:#e0f2fe,stroke:#0288d1,stroke-width:2px,color:#0369a1
+    classDef decision fill:#fef3c7,stroke:#d97706,stroke-width:2px,color:#78350f
+    classDef storage fill:#d1fae5,stroke:#059669,stroke-width:2px,color:#065f46
+
+    Start(["Run pipeline.py"]) --> Discover["Discover *_processed.txt files"]
+    Discover --> Loop["Iterate through discovered paths"]
+
+    Loop --> Metadata["file_parser.py: parse_filename<br/>Extract ticker, company, year, quarter, period"]
+    Metadata --> Read["Read raw text file as single line"]
+
+    Read --> SecSplit["chunker.py: split_into_sections<br/>Split at '[ ' marker → summary + transcript"]
+
+    SecSplit --> Clean["chunker.py: clean_transcript_text<br/>Filter operator instructions & Safe Harbor boilerplate"]
+
+    Clean --> Chunk["chunker.py: chunk_document<br/>RCTS separators: '. ' '? ' '! ' '; ' ' '"]
+
+    Chunk --> Embed["embedder.py: embed_texts<br/>Batch encode: sentence-transformers/all-MiniLM-L6-v2"]
+
+    Embed --> Chroma["EarningsVectorStore<br/>Upsert with chunk_id deduplication"]
+
+    Chunk --> BM25["bm25_retriever.py: build_index<br/>Fit BM25Okapi → serialize bm25.pkl"]
+
+    SecSplit --> KPICheck{"KPI row exists in SQLite for period?"}
+    KPICheck -->|No| KPIExtract["kpi_extractor.py: extract_kpis_from_text<br/>Groq structured LLM + Pydantic validation"]
+    KPIExtract --> SQLInsert["schema.py: INSERT to finance_kpis.db"]
+    KPICheck -->|Yes| SkipKPI["Skip KPI extraction"]
+
+    SQLInsert --> CheckEnd{"All files processed?"}
+    SkipKPI --> CheckEnd
+    Chroma --> CheckEnd
+    BM25 --> CheckEnd
+
+    CheckEnd -->|No| Loop
+    CheckEnd -->|Yes| End(["Pipeline complete: ~1,434 chunks indexed"])
+
+    class Start,End start_end
+    class Metadata,Read,SecSplit,Clean,Chunk,Embed process
+    class KPICheck decision
+    class Chroma,BM25,SQLInsert,SkipKPI storage
+    linkStyle default stroke:#334155,stroke-width:2px
+```
+
 ### Key Components
 
 | Module | File | Responsibility |
