@@ -1,6 +1,6 @@
 # Architecture Deep-Dive
 
-> **[← Back to README](../README.md)** | [Data Ingestion →](./data_ingestion.md) | [Retrieval Engine →](./retrieval_engine.md) | [Agent Orchestration →](./agent_orchestration.md) | [Frontend →](./frontend.md)
+> **[← Back to README](../README.md)** | [Data Ingestion ↓](#layer-1--data-ingestion-pipeline) | [Retrieval Engine →](./retrieval_engine.md) | [Agent Orchestration →](./agent_orchestration.md) | [Frontend →](./frontend.md)
 
 ---
 
