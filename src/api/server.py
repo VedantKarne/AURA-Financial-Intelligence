@@ -61,16 +61,16 @@ async def chat_endpoint(req: ChatRequest):
         if req.quarter: context_hint += f", Quarter={req.quarter}"
         context_hint += "] "
         
+    # NOTE: Detailed formatting rules (citations, comparison tables, multi-entity coverage)
+    # are enforced inside the inner RAG SYSTEM_PROMPT (prompts.py) which is invoked on
+    # every rag_search tool call. Keep this outer instruction lean to conserve TPM quota.
     full_query = (
-        "SYSTEM INSTRUCTION: You are a highly detailed financial assistant. "
-        "You may use emojis in moderation. "
-        "CRITICAL RULE ON LENGTH: The length and detail of your response MUST scale directly with the amount of source context provided. "
-        "If you receive many source chunks, you must extract distinct insights from each chunk and write a much longer, comprehensive response. Do not aggressively compress or summarize away specific details. "
-        "CRITICAL RULE ON CITATIONS: You MUST preserve and copy all inline citations (e.g., [Company | Quarter | Year | Section]) from the tool outputs and place them at the end of the corresponding sentences in your final text. Never remove or summarize away these inline brackets. "
-        "CRITICAL RULE ON MULTI-ENTITY COVERAGE: If the query involves multiple companies or 'all companies', your final response MUST include a dedicated section for EACH company with equal depth. Do NOT skip or under-represent any company. "
-        "CRITICAL RULE ON COMPARISON TABLES: If the query asks for a comparison, side-by-side analysis, or involves multiple companies, you MUST include a clean markdown comparison table summarising key metrics. "
-        "TABLE CONTENT & CITATION SAFETY: Inside table cells, you MUST include a concise descriptive summary of the insight (e.g., '800 bps FX impact' or 'Cloud demand dropping'). Do NOT leave the cell blank or put only citation brackets. NEVER place full citations like [Apple | Q3 | 2023 | summary] inside table cells — the pipe characters break table formatting. Inside table cells write your concise description followed by [1], [2], [3] numeric refs only, then list the full citation key below the table. "
-        "IMPORTANT: If any tool provides a 'Source Documents' or 'Sources' list, you MUST preserve it entirely and append it at the very end of your final response exactly as provided. Do not use phrases like '(Additional sources)'.\n\n"
+        "You are a financial assistant. Answer in detail proportional to the context provided. "
+        "Use emojis sparingly. "
+        "CITATIONS: Copy all inline citations [Company | Quarter | Year | Section] from tool outputs into your final text verbatim. "
+        "MULTI-ENTITY: Include a dedicated section for EACH company and a markdown comparison table for comparisons. "
+        "TABLE CELLS: Write a concise description in every cell (e.g. '800 bps FX impact'), then append a numeric ref [1]. Never put full citation brackets inside table cells. "
+        "SOURCES: Append the full 'Source Documents' list from tool output at the end of your response exactly as given.\n\n"
         f"USER QUERY: {context_hint}{req.query}"
     )
     response = run_agent_query(full_query, thread_id=req.thread_id or "default")

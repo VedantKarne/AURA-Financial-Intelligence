@@ -85,6 +85,9 @@ This document is a consolidated reference of every significant engineering chall
 | Comparison tables broken by citation pipes | `[Apple \| Q3 \| 2023 \| summary]` pipe chars split table cells into phantom columns | `TABLE CITATION SAFETY` rule: numeric `[1]`, `[2]` refs inside cells; Citation Key section below table |
 | Agent synthesis ignores table rules | Two-LLM architecture gap: inner RAG LLM follows `prompts.py` rules, but agent LLM follows only `server.py` instruction | Added comparison table + coverage + citation safety rules to agent system instruction in `server.py` |
 | `k=6` gives only 2 chunks/company | `GLOBAL_K` is a total budget; dividing by 3 companies leaves 2 chunks each — too sparse for risk analysis | Auto-scaling: `effective_k = min(24, max(GLOBAL_K, n_entities * 6))` in `tools.py` |
+| Groq Daily Quota (TPD) exhaustion | Qwen3-32B 500k token daily limit exhausted by intensive testing, causing multi-minute Retry-After hangs | Capped auto-retries at 30s in orchestrator; returning formatted wait times to prevent UI hangs |
+| Agent "Loophole" on missing DB data | SQL DB returned passive "Not found", causing agent to give up instead of searching embeddings | Returned hard "CRITICAL INSTRUCTION: MUST use rag_search" directive from failed DB queries |
+| Forward-looking guidance starved at k=6 | High keyword density of summaries pushed sparse transcript chunks out of context | Auto-boosted k=16 for "guidance" queries + exposed k_override to LLM for recursive retry |
 
 📄 [Full Phase 7 Document →](../features_and_learnings/phase7_challenges_and_solutions.md)
 
@@ -112,3 +115,9 @@ LLMs consistently over-utilise the first passages in their context window. Group
 
 ### L7 — Markdown Syntax Conflicts Must Be Anticipated
 `[Apple | Q3 | 2023 | summary]` contains `|` which breaks markdown tables. Prompt design must provide a format-safe alternative for constrained rendering environments.
+
+### L8 — Active RAG is Required for Deep Narrative Extraction
+Static retrieval depths (`k`) fail for sparse narrative data. Exposing retrieval parameters directly to the LLM allows it to actively self-correct and widen its net when it encounters context starvation.
+
+### L9 — Close Agent Loopholes with Active Directives
+Passive failure messages ("No data found") cause LLM agents to halt execution. Tools must return active directives ("CRITICAL INSTRUCTION: Try X instead") to force recursive tool chaining across the system architecture.

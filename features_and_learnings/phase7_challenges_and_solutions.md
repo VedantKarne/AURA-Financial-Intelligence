@@ -257,3 +257,51 @@ The citation format `[Company | Quarter | Year | Section]` is a good human-reada
 
 ### L5 — Buffer Size is the Most Impactful Reranker Tuning Lever
 The cross-encoder reranker is deterministic — it scores what it receives. The most impactful variable for multi-entity retrieval quality is the **size of the candidate pool fed to the reranker per entity**, not the reranker's score thresholds or temperature. A 3× buffer (`k_per_entity = exact_per_entity * 3`) consistently outperformed a fixed +2 margin across all query types tested.
+
+---
+
+### 7. Groq Daily Quota (TPD) Exhaustion Masquerading as Latency
+
+**The Challenge:**
+The application began experiencing massive 3-6 minute hangs when processing multi-entity queries, culminating in "API Quota Reached" errors. Initial debugging assumed it was a per-minute rate limit (TPM) and attempted to auto-sleep and retry. However, the wait times returned by Groq were progressively increasing (from 15s to 400s+).
+
+**Root Cause:**
+The `qwen/qwen3-32b` model on Groq's free tier has a hard **Tokens Per Day (TPD)** limit of 500,000 tokens. The intensive testing of multi-entity queries (which execute 2 orchestrator calls + 1 heavy inner RAG call per query) completely exhausted the daily budget. The "wait time" was actually Groq calculating the seconds remaining until midnight UTC when the daily quota resets.
+
+**The Resolution:**
+1. Re-architected the `_execute` exception handler in `orchestrator.py` to cap auto-retries at 30 seconds. If `Retry-After` exceeds 30s, it returns a formatted error instantly, preventing silent UI hangs.
+2. Verified that API key rotation instantly restores the 500,000 TPD allowance for continued testing without altering the architecture.
+
+---
+
+### 8. The "Agent Loophole" — Passive Tool Failures Halting Execution
+
+**The Challenge:**
+When queried for NVIDIA's profitability, the orchestrator successfully called the `get_kpis` tool. Because NVIDIA's structured KPIs were missing from the SQL database, the tool returned a passive string: `"No KPIs found for NVIDIA"`. The orchestrator LLM read this, assumed the data didn't exist anywhere, and apologized to the user—despite knowing it *could* theoretically run `rag_search` to find it in the transcripts.
+
+**Root Cause:**
+LLMs often lack the autonomous agency to "try another tool" unless explicitly instructed. A passive failure message confirms to the LLM that the data is absent.
+
+**The Resolution:**
+Rewrote the fallback logic inside `tools.py`'s `get_kpis` to return an active, hard directive rather than a passive failure:
+`"No KPIs found... CRITICAL INSTRUCTION: Do not give up. You MUST immediately call the rag_search tool to find these financial metrics inside the transcript vector embeddings."`
+This closed the agent loophole and forced recursive tool chaining.
+
+---
+
+### 9. Precision vs Recall Trade-off in Forward-Looking Guidance
+
+**The Challenge:**
+When the user queried *"Summarize Q3 guidance for Apple"* with `k=6`, the system failed to find the data. When `k=16`, it succeeded and generated a highly detailed response. 
+
+**Root Cause:**
+Earnings call summaries have extremely high keyword density for terms like "Q3" and "Apple," dominating the top vector similarity ranks. However, actual forward-looking guidance (CFO projections) is sparsely distributed deep within the raw transcript chunks. At `k=6`, the high-level summaries pushed the transcript chunks entirely out of the context window (Context Starvation).
+
+**The Resolution (Active RAG):**
+1. **Auto-Boosting `k`:** In `qa_chain.py`, added a precision filter that detects forward-looking words ("guidance", "outlook", "project") and automatically boosts `k=16` to ensure transcript chunks survive the cut.
+2. **Recursive AI Retrieval:** Exposed an optional `k_override` parameter in the `rag_search` tool signature. Added a `RETRY LOGIC` prompt instructing the LLM to actively re-call the tool with `k_override=24` or `32` if its initial retrieval attempt fails to find the required depth.
+
+---
+
+### L6 — Active RAG is Required for Deep Narrative Extraction
+Static retrieval depths (`k`) are fundamentally flawed because different types of knowledge require different context window sizes. High-level summaries can be extracted at `k=4`, while deep CFO guidance metrics might require `k=16+`. Exposing retrieval parameters directly to the LLM (Active RAG) allows the agent to self-correct and iteratively widen its net when it encounters context starvation.

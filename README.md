@@ -2,7 +2,7 @@
 
 # 📊 AURA — Financial Earnings Intelligence Platform
 
-<!-- SEO Keywords: Multi-Agent RAG, LangGraph, FastAPI, Next.js, ChromaDB, Financial AI, Earnings Calls Analysis, Groq, Qwen3-32B, HuggingFace, Reciprocal Rank Fusion, Cross-Encoder, AI Agent, SQLite, TypeScript, React -->
+<!-- SEO Keywords: Multi-Agent RAG, LangGraph, FastAPI, Next.js, ChromaDB, Financial AI, Earnings Calls Analysis, Groq, Qwen3-32B, Llama-3.3-70B, HuggingFace, Reciprocal Rank Fusion, Cross-Encoder, AI Agent, SQLite, TypeScript, React, Active RAG, Self-Correction, Precision vs Recall Trade-off, Entity Starvation, LLM Primacy Bias, TailwindCSS, Financial Intelligence Platform -->
 
 [![Python](https://img.shields.io/badge/Python-3.11%2B-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
 [![Next.js](https://img.shields.io/badge/Next.js-14-000000?style=for-the-badge&logo=nextdotjs&logoColor=white)](https://nextjs.org)
@@ -43,6 +43,10 @@ AURA transcends the typical "GenAI wrapper" by engineering robust, original solu
 - 🔗 **Two-LLM Synthesis Gap Resolution (Dual-Layer Prompt Enforcement)**: AURA uses two sequentially-called LLMs — an inner RAG chain LLM and an outer Agent Synthesiser LLM. A formatting rule in only one layer is silently overridden by the other. All quality rules (table generation, citation safety, equal entity coverage) are explicitly duplicated in both `prompts.py` and `server.py`, sealing the inter-LLM compliance gap.
 
 - 🛡️ **Anti-Hallucination Stateful Memory Filter**: In multi-turn agentic systems, the LLM sees previous `ToolMessage` artifacts in history and "reuses" stale cached data instead of calling tools afresh — producing confident hallucinations. AURA's `filter_messages_for_llm()` actively strips all prior tool artifacts from the LangGraph state before each LLM call, forcing fresh data retrieval on every turn while preserving natural conversation flow.
+
+- 🔁 **Active RAG (Recursive Self-Correction for Recall vs Precision)**: Static retrieval limits fail on deep narrative extraction. AURA implements dynamic `k` auto-boosting for forward-looking guidance queries, and exposes `k_override` directly to the orchestrator LLM. If the initial search yields sparse data, the agent actively self-reflects and recursively fetches deeper transcript chunks instead of passively failing.
+
+- 🚦 **Agent Fallback Loophole Fixes**: LLM agents often halt execution when secondary tools return passive "no data found" strings. AURA transforms passive SQL failures into hard directives ("CRITICAL INSTRUCTION: You MUST immediately call the rag_search tool"), forcing the agent to seamlessly bridge structured DB misses with unstructured vector embeddings.
 
 - 📊 **Table-Safe Citation Architecture**: The citation format `[Apple | Q3 | 2023 | summary]` contains `|` — the markdown table column separator. Embedding it in table cells destroys table structure by adding phantom columns.
 

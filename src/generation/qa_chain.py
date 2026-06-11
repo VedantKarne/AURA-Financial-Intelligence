@@ -269,7 +269,16 @@ def get_answer(
         section=section,
     )
 
-    # 1. Query Rewrite (conversational context)
+    # 1. Dynamic 'k' Scaling for Deep-Narrative Queries
+    # Queries about "guidance", "outlook", or "projections" require deep 
+    # transcript extraction. High-level summaries often rank higher in vector 
+    # similarity but lack the specific CFO forward-looking numbers.
+    if any(word in question.lower() for word in ["guidance", "outlook", "project", "expect", "forward", "guide"]):
+        if k < 16:
+            logger.info(f"Auto-boosting k from {k} to 16 for guidance/forward-looking query.")
+            k = 16
+
+    # 2. Query Rewrite (conversational context)
     search_query = question
     rewritten = False
     if chat_history:
@@ -1003,6 +1012,9 @@ def get_answer_streaming(
     # Yield remaining buffer
     if not in_think and buffer:
         yield buffer.replace("$", "USD ").replace("USD USD ", "USD ")
+
+
+
 
 
 # ---------------------------------------------------------------------------

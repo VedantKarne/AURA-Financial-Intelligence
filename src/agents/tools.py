@@ -56,12 +56,14 @@ def rag_search(
     company: Optional[str] = None, 
     year: Optional[int] = None, 
     quarter: Optional[str] = None,
+    k_override: Optional[int] = None,
     config: Optional[RunnableConfig] = None
 ) -> str:
     """Search earnings call transcripts using hybrid RAG retrieval.
     Use this tool for qualitative questions, narrative summaries, and risk analysis.
     IMPORTANT: If the user asks about 'all companies', comparisons, or multiple entities, DO NOT specify the `company` argument. 
     CRITICAL: You MUST preserve words like 'compare', 'all companies', or list out the company names in the `query` argument itself so the retrieval system knows to fetch equal chunks for each company natively. Do not strip them out!
+    RETRY LOGIC: If your first call to this tool fails to find the necessary information, do NOT give up. Call this tool again with `k_override=24` or `k_override=32` to cast a wider net and extract deeper transcript chunks.
     """
     thread_id = config.get("configurable", {}).get("thread_id", "default") if config else "default"
     
@@ -71,7 +73,10 @@ def rag_search(
     # A k of 6 for 3 companies = only 2 chunks each, which is far too sparse.
     n_entities = _count_entities_in_query(query)
     effective_k = GLOBAL_K
-    if n_entities > 1:
+    
+    if k_override is not None:
+        effective_k = k_override
+    elif n_entities > 1:
         # Minimum 6 chunks per entity, capped at 24 total
         effective_k = min(24, max(GLOBAL_K, n_entities * 6))
     
@@ -128,7 +133,7 @@ def get_kpis(company: Optional[str] = None, year: Optional[int] = None, quarter:
     session.close()
     
     if not kpis:
-        return f"No KPIs found for {company} (Year: {year}, Quarter: {quarter})"
+        return f"No KPIs found for {company} (Year: {year}, Quarter: {quarter}) in the structured database. CRITICAL INSTRUCTION: Do not give up. You MUST immediately call the `rag_search` tool to find these financial metrics inside the transcript vector embeddings."
         
     results = []
     for k in kpis:
