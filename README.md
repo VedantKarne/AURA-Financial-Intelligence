@@ -15,20 +15,22 @@
 
 ---
 
-## 🌟 System Maturity & Selling Points
-AURA is an **enterprise-ready system** engineered to solve the most difficult edge cases in AI development:
-- **Zero-Hallucination Guardrails**: Decouples quantitative data (SQL) from qualitative data (Vectors), ensuring financial KPIs are 100% accurate.
-- **Fair Multi-Entity RAG**: Custom 3-layer quota allocation completely eliminates "entity starvation" when comparing multiple companies.
-- **Scale-Invariant Hybrid Search**: Reciprocal Rank Fusion (RRF) flawlessly merges dense cosine vectors with sparse BM25 scores.
-- **Cross-Encoder Reranking**: Applies deep semantic alignment between query and passage, outperforming traditional cosine similarity.
-- **Stateful Memory & Anti-Hallucination Filter**: LangGraph session UUIDs maintain conversation history, while a custom filter strips stale tool artifacts to force fresh AI reasoning on every turn.
+## 🌟 What Makes This a Production-Grade MVP
+AURA transcends the typical "GenAI wrapper" by engineering robust solutions to the most difficult edge-cases in financial AI, as documented in our extensive engineering logs:
+
+- **Entity Starvation Elimination (3-Layer Quota Allocation)**: Traditional RAG fails when asked to compare multiple companies by heavily favouring the one with the highest semantic match. AURA implements an entity-aware allocator with a 3× retrieval buffer and a round-robin overflow mechanism, guaranteeing equal context-window representation for Apple, Microsoft, and Nvidia.
+- **Dual-Layer Prompt Enforcement for Zero-Hallucination**: Financial data requires absolute precision. AURA enforces table-formatting and citation safety rules at *both* the inner RAG chain and the final Agent Synthesiser layer, ensuring the LLM never hallucinates numbers or breaks markdown tables with inline citations.
+- **Anti-Hallucination State Management**: A custom LangGraph checkpointer filter (`filter_messages_for_llm`) actively strips stale `ToolMessage` artifacts from the conversation history. This forces the LLM to pull fresh data on every turn instead of "recycling" outdated context from previous queries.
+- **Scale-Invariant Hybrid Search**: Seamlessly fuses dense semantic search (ChromaDB vectors) with exact lexical matching (BM25) using Reciprocal Rank Fusion (RRF), ensuring highly specific metrics and broad qualitative statements are both accurately retrieved.
+- **Cross-Encoder Reranking at Scale**: Rather than trusting cosine similarity, AURA passes candidate chunks through a local `ms-marco-MiniLM-L-6-v2` cross-encoder, fundamentally altering the top-k context to prioritize actual relevance over keyword proximity.
+- **Quantitative vs. Qualitative Decoupling**: AURA routes hard financial metrics to a structured SQLite database (`get_kpis`) while sending qualitative analysis to the vector engine (`rag_search`), protecting against the severe hallucination risks of treating numbers as raw text.
 
 ---
 
 ## 📑 Table of Contents
 
-- [🌟 System Maturity & Selling Points](#-system-maturity--selling-points)
-- [🛑 The Problem We Solve](#-the-problem-we-solve)
+- [🌟 What Makes This a Production-Grade MVP](#-what-makes-this-a-production-grade-mvp)
+- [🛑 The Enterprise Information Bottleneck](#-the-enterprise-information-bottleneck)
 - [📥 Quick Start](#-quick-start)
 - [📺 Platform Preview](#-platform-preview)
 - [✨ Features](#-features)
@@ -42,8 +44,8 @@ AURA is an **enterprise-ready system** engineered to solve the most difficult ed
 
 ---
 
-## 🛑 The Problem We Solve
-*Financial analysts and hedge funds drown in information overload during earnings season. When trying to use standard LLMs to automate research, they encounter massive hallucination of financial numbers and "entity starvation" (biased focus on a single company).*
+## 🛑 The Enterprise Information Bottleneck
+*Financial analysts and hedge funds drown in information overload during earnings season. When trying to use standard LLMs to automate research, the industry encounters massive hallucination of financial numbers and "entity starvation" (biased focus on a single company).*
 
 **AURA** solves this enterprise-grade challenge. By employing a **Multi-Agent RAG Architecture**, AURA isolates qualitative analysis (via Hybrid RAG + Cross-Encoders) from quantitative extraction (via strict SQLite metrics), guaranteeing zero-hallucination intelligence and unbiased multi-company comparisons.
 
