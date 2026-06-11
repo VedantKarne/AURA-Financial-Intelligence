@@ -89,7 +89,17 @@ async def get_kpis_endpoint(company: Optional[str] = None, year: Optional[int] =
 
 @app.post("/api/generate-report")
 async def generate_report(req: ReportRequest):
-    prompt = f"CRITICAL SYSTEM INSTRUCTION: DO NOT use ANY emojis in your response. This is a formal business document.\n\nGenerate a highly detailed and professional investment research brief for {req.company} in {req.year} {req.quarter}. Use the generate_report_sections tool to gather the facts, then synthesize a complete markdown report."
+    import datetime
+    current_date = datetime.date.today().strftime("%B %d, %Y")
+    prompt = (
+        f"CRITICAL SYSTEM INSTRUCTION: DO NOT use ANY emojis in your response. This is a formal business document.\n\n"
+        f"Generate a highly detailed and professional investment research brief for {req.company} in {req.year} {req.quarter}. "
+        f"Use the generate_report_sections tool to gather the facts, then synthesize a complete markdown report. "
+        f"AT THE VERY END of the report, you MUST include exactly this sign-off block:\n\n"
+        f"---\n"
+        f"**Prepared By:** Vedant Karne's AURA Intelligence Engine\n"
+        f"**Date:** {current_date}"
+    )
     response = run_agent_query(prompt)
     return {"report": response}
 
