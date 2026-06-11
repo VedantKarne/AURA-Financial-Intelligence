@@ -17,6 +17,15 @@
 
 ---
 
+## 🛑 The Problem We Solve
+*Financial analysts and hedge funds drown in information overload during earnings season. When trying to use standard LLMs to automate research, they encounter massive hallucination of financial numbers and "entity starvation" (biased focus on a single company).*
+
+**AURA** solves this enterprise-grade challenge. By employing a **Multi-Agent RAG Architecture**, AURA isolates qualitative analysis (via Hybrid RAG + Cross-Encoders) from quantitative extraction (via strict SQLite metrics), guaranteeing zero-hallucination intelligence and unbiased multi-company comparisons.
+
+👉 **[Read the Full Problem Statement & Market Value Here](docs/problem_statement.md)**
+
+---
+
 ## 📺 Platform Preview
 
 > A premium dark-luxury financial intelligence cockpit featuring AI chat, KPI analytics, and investment brief generation.
