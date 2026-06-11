@@ -32,22 +32,22 @@ flowchart TD
     classDef decision fill:#fef3c7,stroke:#d97706,stroke-width:2px,color:#78350f
     classDef storage fill:#d1fae5,stroke:#059669,stroke-width:2px,color:#065f46
 
-    Start([User Request]) --> InitState[Initialize AgentState: messages list]
-    InitState --> Filter[filter_messages_for_llm<br/>Strip past tool artifacts]
-    Filter --> Chatbot[chatbot_node<br/>qwen/qwen3-32b evaluates intent]
+    Start(["User Request"]) --> InitState["Initialize AgentState: messages list"]
+    InitState --> Filter["filter_messages_for_llm<br/>Strip past tool artifacts"]
+    Filter --> Chatbot["chatbot_node<br/>qwen/qwen3-32b evaluates intent"]
 
-    Chatbot --> RouteCheck{Tool calls requested?}
+    Chatbot --> RouteCheck{"Tool calls requested?"}
 
-    RouteCheck -->|Yes| ToolNode[tools_node<br/>Execute triggered tool]
-    RouteCheck -->|No| End([Deliver Final AIMessage])
+    RouteCheck -->|Yes| ToolNode["tools_node<br/>Execute triggered tool"]
+    RouteCheck -->|No| End(["Deliver Final AIMessage"])
 
-    ToolNode --> ToolBranch{Which tool?}
+    ToolNode --> ToolBranch{"Which tool?"}
 
-    ToolBranch -->|rag_search| RAGTool[rag_search<br/>Auto-scaled k hybrid RAG]
-    ToolBranch -->|get_kpis| SQLTool[get_kpis<br/>SQLite KPI query]
-    ToolBranch -->|generate_report_sections| BriefTool[generate_report_sections<br/>Aggregate RAG + KPIs]
+    ToolBranch -->|rag_search| RAGTool["rag_search<br/>Auto-scaled k hybrid RAG"]
+    ToolBranch -->|get_kpis| SQLTool["get_kpis<br/>SQLite KPI query"]
+    ToolBranch -->|generate_report_sections| BriefTool["generate_report_sections<br/>Aggregate RAG + KPIs"]
 
-    RAGTool --> AppendState[Append ToolMessage to state]
+    RAGTool --> AppendState["Append ToolMessage to state"]
     SQLTool --> AppendState
     BriefTool --> AppendState
 

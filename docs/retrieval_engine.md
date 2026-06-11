@@ -15,39 +15,39 @@ flowchart TD
     classDef decision fill:#fef3c7,stroke:#d97706,stroke-width:2px,color:#78350f
     classDef storage fill:#d1fae5,stroke:#059669,stroke-width:2px,color:#065f46
 
-    Start([Receive Query & Context Filters]) --> RewriteCheck{Chat history exists?}
+    Start(["Receive Query & Context Filters"]) --> RewriteCheck{"Chat history exists?"}
 
-    RewriteCheck -->|Yes| QueryRewrite[query_transformer.py: rewrite_query<br/>Resolve pronouns & temporal intent]
-    RewriteCheck -->|No| UseOriginal[Use raw query]
+    RewriteCheck -->|Yes| QueryRewrite["query_transformer.py: rewrite_query<br/>Resolve pronouns & temporal intent"]
+    RewriteCheck -->|No| UseOriginal["Use raw query"]
 
-    QueryRewrite --> Route[router.py: QueryRouter<br/>Classify strategy & retrieval mode]
+    QueryRewrite --> Route["router.py: QueryRouter<br/>Classify strategy & retrieval mode"]
     UseOriginal --> Route
 
-    Route --> StrategyBranch{Selected Strategy?}
+    Route --> StrategyBranch{"Selected Strategy?"}
 
-    StrategyBranch -->|comparison_query| SQLPath[Fetch KPIs from SQLite]
-    StrategyBranch -->|RAG paths| MultiCheck{Multiple companies targeted?}
+    StrategyBranch -->|comparison_query| SQLPath["Fetch KPIs from SQLite"]
+    StrategyBranch -->|RAG paths| MultiCheck{"Multiple companies targeted?"}
 
-    SQLPath --> SQLAssemble[Synthesize metrics into Markdown]
+    SQLPath --> SQLAssemble["Synthesize metrics into Markdown"]
 
-    MultiCheck -->|No| SingleQuery[Standard Hybrid Retrieval<br/>Vector + BM25 candidates]
-    SingleQuery --> Fusion[hybrid_retriever.py: RRF<br/>score = Σ 1/(60 + rank)]
-    Fusion --> Rerank[reranker.py: Cross-Encoder<br/>ms-marco-MiniLM-L-6-v2]
-    Rerank --> SliceTop[Slice top-k scored docs]
+    MultiCheck -->|No| SingleQuery["Standard Hybrid Retrieval<br/>Vector + BM25 candidates"]
+    SingleQuery --> Fusion["hybrid_retriever.py: RRF<br/>score = Σ 1/(60 + rank)"]
+    Fusion --> Rerank["reranker.py: Cross-Encoder<br/>ms-marco-MiniLM-L-6-v2"]
+    Rerank --> SliceTop["Slice top-k scored docs"]
 
-    MultiCheck -->|Yes| MultiBuffer[Per-entity 3× buffer retrieval<br/>k_per_entity = exact × 3]
-    MultiBuffer --> MultiRerank[Cross-Encoder per entity pool]
-    MultiRerank --> QuotaFill[Strict quota: k // n_entities per company]
-    QuotaFill --> RoundRobin[Round-robin overflow fill]
-    RoundRobin --> GroupSort[Entity-grouped context ordering<br/>Apple → MSFT → Nvidia]
+    MultiCheck -->|Yes| MultiBuffer["Per-entity 3× buffer retrieval<br/>k_per_entity = exact × 3"]
+    MultiBuffer --> MultiRerank["Cross-Encoder per entity pool"]
+    MultiRerank --> QuotaFill["Strict quota: k // n_entities per company"]
+    QuotaFill --> RoundRobin["Round-robin overflow fill"]
+    RoundRobin --> GroupSort["Entity-grouped context ordering<br/>Apple → MSFT → Nvidia"]
 
-    SliceTop --> Assemble[Assemble context + format citations]
+    SliceTop --> Assemble["Assemble context + format citations"]
     GroupSort --> Assemble
 
-    Assemble --> LLMGen[qwen/qwen3-32b<br/>temperature=0.0]
+    Assemble --> LLMGen["qwen/qwen3-32b<br/>temperature=0.0"]
 
-    LLMGen --> StreamParse[Filter think tags & normalize USD]
-    StreamParse --> Response([Deliver Answer & Source Citations])
+    LLMGen --> StreamParse["Filter think tags & normalize USD"]
+    StreamParse --> Response(["Deliver Answer & Source Citations"])
     SQLAssemble --> Response
 
     class Start,Response start_end
