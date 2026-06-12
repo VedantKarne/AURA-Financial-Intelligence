@@ -9,7 +9,7 @@ config/.env
 
 # Generated data artifacts
 data/
-evaluation/results/
+evaluation/results/*
 !evaluation/results/eval_report.md
 
 # Python
