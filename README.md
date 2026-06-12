@@ -229,6 +229,12 @@ flowchart TB
     linkStyle default stroke:#334155,stroke-width:2px
 ```
 
+> 🖼️ **HD Visual Overview** — High-definition mindmaps of the full system and detailed RAG pipeline (exported from Eraser.io):
+
+| System Architecture Mindmap | Detailed RAG Architecture Mindmap |
+|:---:|:---:|
+| ![System Architecture Mindmap](Important_HD_Flowcharts/System_Architecture_MIndmap.png) | ![Detailed RAG Architecture Mindmap](Important_HD_Flowcharts/Detailed_RAG_Arhitecture_Mindmap.png) |
+
 📖 **[Read the full Architecture Deep-Dive →](docs/architecture.md)**
 
 ---
@@ -367,6 +373,11 @@ Finance_RAG_Project/
 │   ├── frontend.md             # UI component documentation
 │   ├── deployment.md           # Setup & deployment guide
 │   └── engineering_challenges.md  # All-phases challenge log
+├── Important_HD_Flowcharts/    # 🖼️ HD Eraser.io mindmap exports
+│   ├── System_Architecture_MIndmap.png
+│   ├── Data_Ingestion_Pipeline.png
+│   ├── Detailed_RAG_Arhitecture_Mindmap.png
+│   └── AI_Agent_Workflow_LangGraph_Structure.png
 ├── features_and_learnings/     # Per-phase engineering logs (Phases 1–7)
 ├── config/
 │   ├── config.yaml             # All system parameters (models, paths, thresholds)

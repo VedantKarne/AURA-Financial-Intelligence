@@ -61,6 +61,10 @@ flowchart TD
     linkStyle default stroke:#334155,stroke-width:2px
 ```
 
+> 🖼️ **HD AI Agent Workflow & LangGraph Structure** (Eraser.io export):
+
+![AI Agent Workflow LangGraph Structure](../Important_HD_Flowcharts/AI_Agent_Workflow_LangGraph_Structure.png)
+
 ```python
 # State: a simple message list that grows with each turn
 class AgentState(TypedDict):

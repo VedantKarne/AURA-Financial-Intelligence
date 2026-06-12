@@ -66,6 +66,10 @@ flowchart TD
     end
 ```
 
+> 🖼️ **HD Detailed RAG Architecture Mindmap** (Eraser.io export):
+
+![Detailed RAG Architecture Mindmap](../Important_HD_Flowcharts/Detailed_RAG_Arhitecture_Mindmap.png)
+
 ---
 
 ## Detailed Step-by-Step Explanation
@@ -83,6 +87,10 @@ Chunks are passed through the local `sentence-transformers/all-MiniLM-L6-v2` emb
 Data is simultaneously loaded into two systems:
 - **ChromaDB**: Stores the 384-dimensional dense vectors using HNSW indexing for rapid semantic similarity search.
 - **BM25 Index**: Stores a sparse lexical corpus (`bm25.pkl`) for exact keyword, ticker, and specific numeric value matching.
+
+> 🖼️ **HD Data Ingestion Pipeline** (Eraser.io export):
+
+![Data Ingestion Pipeline](../Important_HD_Flowcharts/Data_Ingestion_Pipeline.png)
 
 ### 5. User Query
 The user enters a natural language query via the Next.js React frontend.

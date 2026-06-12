@@ -21,6 +21,10 @@ Raw Transcripts (TXT)
 ```
 👉 **[View the Detailed RAG Ecosystem Flowchart Here](detailed_rag_architecture.md)**
 
+> 🖼️ **HD System Architecture Mindmap** (Eraser.io export):
+
+![System Architecture Mindmap](../Important_HD_Flowcharts/System_Architecture_MIndmap.png)
+
 ---
 
 ## Layer 1 — Data Ingestion Pipeline
@@ -71,6 +75,10 @@ flowchart TD
     class Chroma,BM25,SQLInsert,SkipKPI storage
     linkStyle default stroke:#334155,stroke-width:2px
 ```
+
+> 🖼️ **HD Data Ingestion Pipeline** (Eraser.io export):
+
+![Data Ingestion Pipeline](../Important_HD_Flowcharts/Data_Ingestion_Pipeline.png)
 
 ### Key Components
 
