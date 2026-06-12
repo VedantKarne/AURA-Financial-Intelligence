@@ -277,6 +277,7 @@ Explore the detailed technical documentation in the [`docs/`](docs/) directory:
 | 💅 [Frontend Cockpit](docs/frontend.md) | Next.js design system, components, animations, API integration |
 | 🚀 [Deployment Guide](docs/deployment.md) | Local setup, Docker, troubleshooting, performance tuning |
 | 🛠️ [Engineering Challenges](docs/engineering_challenges.md) | All-phases challenge log: root causes, solutions, learnings |
+| 📊 [Evaluation Report](evaluation/results/eval_report.md) | Phase 2 & Phase 7 RAG quality metrics, entity fairness, hallucination tests |
 
 **Per-Phase Engineering Logs:**
 
