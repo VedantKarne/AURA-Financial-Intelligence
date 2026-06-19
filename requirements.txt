@@ -1,6 +1,6 @@
 # ============================================================
 # Financial Earnings Intelligence Platform
-# requirements.txt — Phase 1 (RAG Foundation)
+# requirements.txt — Full Platform (Phase 8)
 # Tested on: Python 3.14, Windows 11
 # ============================================================
 
@@ -35,6 +35,13 @@ tqdm>=4.60.0
 pandas>=2.0.0
 numpy>=1.26.0
 colorama>=0.4.6
+
+# --- Phase 3-8 (API, Agents, Memory & State) ---
+fastapi>=0.110.0
+uvicorn>=0.30.0
+langgraph>=0.1.0
+pydantic>=2.0.0
+SQLAlchemy>=2.0.0
 
 # ============================================================
 # NOTE: If you have a CUDA GPU, install the CUDA build:
