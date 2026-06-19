@@ -191,6 +191,17 @@ Fetches structured KPI data from `/api/kpis` and renders each quarter's metrics 
 
 ---
 
+### 4. Live Agent Workflow Monitor (`/monitor`)
+
+A dedicated observability page built with `@xyflow/react` (React Flow) that visualizes the backend LangGraph agent execution in real-time.
+
+- **Dynamic Graph Rendering**: Displays the complete agent topology (`START`, `Chatbot`, `Tool Router`, and all tools).
+- **Server-Sent Events (SSE)**: Subscribes to `/api/workflow-stream` to receive state updates from the backend event bus.
+- **Visual Polish**: Active nodes display a pulsating golden border (`#ECC94B`) while executing. Edges animate to trace the active path.
+- **Side Panel Logs**: Shows the current query, active tool name, live tool arguments, output previews, and a timestamped event log.
+
+---
+
 ## Markdown Rendering
 
 AI responses render via `react-markdown` with `remarkGfm` plugin, supporting:

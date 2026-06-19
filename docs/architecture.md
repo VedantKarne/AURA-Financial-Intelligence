@@ -218,13 +218,15 @@ The agent's final synthesis pass is governed by a comprehensive system instructi
 | `/api/chat` | POST | Primary chat endpoint — runs agent, returns message + source snippets |
 | `/api/kpis` | GET | Direct SQLite KPI query for dashboard |
 | `/api/generate-report` | POST | Triggers full investment brief generation via agent |
+| `/api/workflow-stream` | GET | Server-Sent Events (SSE) stream for real-time agent execution observability |
 
 ### Frontend: Next.js 14 (`frontend/src/app/`)
 
-Three main panels available via tab navigation:
+Four main panels available:
 - **Intelligence Chat** — Multi-turn RAG chat with citation cards and source panel
 - **KPI Analytics** — Structured financial metrics dashboard with YoY trend indicators
 - **Intelligence Brief** — Automated investment research report generator
+- **Workflow Monitor** (`/monitor`) — Real-time React Flow agent execution observability graph
 
 ---
 

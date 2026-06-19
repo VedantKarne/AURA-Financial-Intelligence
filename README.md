@@ -152,6 +152,7 @@ AURA divides cognitive labor among specialized, autonomous sub-systems rather th
 ### 💅 Premium Cockpit UI
 
 - **Three-panel interface**: Intelligence Chat · KPI Analytics · Investment Brief Generator
+- **Live Agent Workflow Monitor**: Dedicated React Flow observability page (`/monitor`) streaming agent execution via SSE
 - **Animated sun icon**: 8s idle spin → 3s active spin + expanding pulse halo when typing
 - **Citation bubble tooltips**: Hover any `[Company | Q | Year | Section]` reference for source snippet
 - **Markdown comparison tables**: Enforced via dual-layer prompt engineering for multi-entity queries
@@ -288,7 +289,8 @@ Explore the detailed technical documentation in the [`docs/`](docs/) directory:
 | 3–4 | KPI Extraction + Agent | [Phase 3–4 →](features_and_learnings/phase3_4__challenges_and_resolutions.md) |
 | 5 | Premium Frontend | [Phase 5 →](features_and_learnings/phase5_challenges_and_solutions.md) |
 | 6 | Dockerization | [Phase 6 →](features_and_learnings/phase6_challenges_and_solutions.md) |
-| 7 | RAG Quality & Multi-Entity | [Phase 7 →](features_and_learnings/phase7_challenges_and_solutions.md) |
+| 7 | RAG Quality | [Phase 7 →](features_and_learnings/phase7_challenges_and_solutions.md) |
+| 8 | Workflow Monitor | [Phase 8 →](features_and_learnings/phase8_challenges_and_solutions.md) |
 
 **Master Walkthrough:** [walkthrough.md →](walkthrough.md)
 
@@ -323,6 +325,7 @@ Explore the detailed technical documentation in the [`docs/`](docs/) directory:
 | **5 — Premium Frontend** | UI overhaul | Next.js cockpit, citation bubbles, query history, agent stepper |
 | **6 — Dockerization** | Production ops | Multi-stage Docker, Compose networking, volume persistence |
 | **7 — RAG Quality** | Intelligence accuracy | 3× buffer retrieval, round-robin overflow, entity-grouped context, table citation safety, dual-layer prompts |
+| **8 — Workflow Monitor** | Observability | Live React Flow graph, SSE event bus, async threadpool unblocking, auto-retry parser |
 
 ---
 

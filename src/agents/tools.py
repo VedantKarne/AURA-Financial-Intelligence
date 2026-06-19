@@ -152,13 +152,58 @@ def get_kpis(company: Optional[str] = None, year: Optional[int] = None, quarter:
 
 @tool
 def generate_report_sections(company: str, year: int, quarter: str) -> str:
-    """Retrieves all necessary information to generate an investment brief."""
+    """Retrieves all necessary information to generate a comprehensive investment research brief.
+    Makes multiple targeted RAG calls to gather material for every section of the report:
+    executive summary, segment analysis, strategic drivers, forward guidance, risks, and investment implications.
+    """
+    # 1. Structured KPIs from database
     kpi_data = get_kpis.invoke({"company": company, "year": year, "quarter": quarter})
-    narrative = rag_search.invoke({
-        "query": f"Summarize {company}'s performance in {year} Q{quarter}. What were the key drivers, headwinds, and forward-looking statements?",
+
+    # 2. High-level financial performance overview
+    executive_narrative = rag_search.invoke({
+        "query": f"Provide an executive summary of {company}'s overall financial performance in {year} {quarter}. Include total revenue, EPS, operating income, operating margin, and year-over-year growth rates.",
         "company": company,
         "year": year,
         "quarter": quarter
     })
-    
-    return f"--- KPIs ---\n{kpi_data}\n\n--- Narrative ---\n{narrative}"
+
+    # 3. Segment and product line analysis
+    segment_narrative = rag_search.invoke({
+        "query": f"Break down {company}'s revenue by business segment and product line in {year} {quarter}. What were the key drivers of growth or decline within each segment?",
+        "company": company,
+        "year": year,
+        "quarter": quarter
+    })
+
+    # 4. Strategic growth drivers and catalysts
+    strategic_narrative = rag_search.invoke({
+        "query": f"What were the main strategic growth drivers, new product launches, partnerships, and competitive advantages for {company} in {year} {quarter}? What initiatives did management highlight?",
+        "company": company,
+        "year": year,
+        "quarter": quarter
+    })
+
+    # 5. Forward-looking guidance and outlook
+    guidance_narrative = rag_search.invoke({
+        "query": f"What was {company}'s forward-looking guidance, outlook, and management commentary on expectations for future quarters in {year} {quarter} earnings call?",
+        "company": company,
+        "year": year,
+        "quarter": quarter
+    })
+
+    # 6. Key risks, headwinds, and investment implications
+    risk_narrative = rag_search.invoke({
+        "query": f"What were the key risks, headwinds, challenges, and concerns raised by management or analysts about {company} in {year} {quarter}? What are the investment risks?",
+        "company": company,
+        "year": year,
+        "quarter": quarter
+    })
+
+    return (
+        f"--- STRUCTURED KPIs ---\n{kpi_data}\n\n"
+        f"--- EXECUTIVE OVERVIEW ---\n{executive_narrative}\n\n"
+        f"--- SEGMENT ANALYSIS ---\n{segment_narrative}\n\n"
+        f"--- STRATEGIC DRIVERS & CATALYSTS ---\n{strategic_narrative}\n\n"
+        f"--- FORWARD-LOOKING GUIDANCE ---\n{guidance_narrative}\n\n"
+        f"--- RISKS & HEADWINDS ---\n{risk_narrative}"
+    )

@@ -187,6 +187,25 @@ This forces the LLM to approach every new query with fresh tool calls while stil
 
 ---
 
+## Observability & Event Bus (`events.py`)
+
+AURA features a real-time observability layer that streams agent execution states to the frontend Workflow Monitor via Server-Sent Events (SSE).
+
+### Neutral Event Bus Architecture
+Because the API layer (`server.py`) invokes the agent (`orchestrator.py`), reverse-importing `server.py` into the orchestrator to emit events would cause a circular import. Instead, both modules depend on `events.py`:
+- `server.py` calls `subscribe()` to get an async queue for the SSE client.
+- `orchestrator.py` calls `emit(event)` from deep within the LangGraph stream.
+- `events.py` uses `loop.call_soon_threadsafe()` to safely bridge events from the synchronous LangGraph background thread back into the FastAPI async event loop.
+
+### Instrumentation Points
+The `_execute()` function inside `orchestrator.py` emits the following events:
+- `query_start`, `query_complete`
+- `node_enter`, `node_exit`
+- `tool_call`, `tool_result`
+- `error` (for rate limits or system failures)
+
+---
+
 ## Agent System Instruction Architecture
 
 The `/api/chat` endpoint in `server.py` wraps every user query in a comprehensive system instruction before passing it to the agent:
