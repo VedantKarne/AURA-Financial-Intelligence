@@ -105,7 +105,9 @@ def get_router():
         llm_router = ChatGroq(
             model="qwen/qwen3-32b",
             temperature=0.0,
-            api_key=api_key
+            api_key=api_key,
+            max_retries=3,
+            timeout=120.0
         )
         _router = QueryRouter(llm=llm_router)
     return _router
@@ -121,7 +123,9 @@ def get_query_transformer():
         llm_transformer = ChatGroq(
             model="qwen/qwen3-32b",
             temperature=0.0,
-            api_key=api_key
+            api_key=api_key,
+            max_retries=3,
+            timeout=120.0
         )
         _query_transformer = QueryTransformer(llm=llm_transformer)
     return _query_transformer
@@ -198,6 +202,8 @@ def get_llm() -> ChatGroq:
             model=LLM_MODEL,
             temperature=LLM_TEMPERATURE,
             api_key=api_key,
+            max_retries=3,
+            timeout=120.0,
         )
         logger.info(f"Groq LLM initialised: model={LLM_MODEL}, temperature={LLM_TEMPERATURE}")
     return _llm

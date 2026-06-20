@@ -57,7 +57,9 @@ def get_agent_llm():
     # We use qwen/qwen3-32b as requested
     return ChatGroq(
         model_name="qwen/qwen3-32b",
-        temperature=0.0
+        temperature=0.0,
+        max_retries=3,
+        timeout=120.0
     ).bind_tools(tools)
 
 """
