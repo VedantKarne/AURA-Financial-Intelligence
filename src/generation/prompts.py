@@ -12,7 +12,7 @@ Design principles:
     compare prompt variants without breaking existing code.
 """
 
-from langchain_core.prompts import ChatPromptTemplate, PromptTemplate
+from langchain_core.prompts import ChatPromptTemplate
 
 # ---------------------------------------------------------------------------
 # System prompt — sets the LLM's role and strict citation rules
@@ -66,22 +66,6 @@ Provide a clear, accurate answer with source citations for every claim. If the q
 2. Include a comparison table in clean markdown format summarising the key metrics side-by-side.
 3. IMPORTANT: Inside table cells, use numeric refs [1], [2], [3] instead of full citation brackets to avoid breaking the table. List the full citations in a 'Citation Key' section directly below the table."""),
 ])
-
-
-
-# ---------------------------------------------------------------------------
-# Standalone condensation prompt (for multi-turn chat — Phase 2 extension)
-# ---------------------------------------------------------------------------
-CONDENSE_QUESTION_PROMPT = PromptTemplate.from_template("""Given the following \
-conversation history and a follow-up question, rephrase the follow-up question \
-to be a standalone question that captures the full context.
-
-Conversation history:
-{chat_history}
-
-Follow-up question: {question}
-
-Standalone question:""")
 
 
 # ---------------------------------------------------------------------------
