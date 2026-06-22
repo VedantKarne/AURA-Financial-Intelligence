@@ -292,6 +292,15 @@ docker compose run --rm backend python -m src.ingestion.pipeline
 
 ---
 
+## 🚀 Future Scalability Path
+
+While AURA currently uses SQLite and local ChromaDB for zero-friction local deployment and ease of demonstration, the architecture is entirely decoupled. For enterprise production serving thousands of concurrent users, the system is designed to seamlessly swap to:
+- **PostgreSQL** for strict KPI storage and ACID compliance.
+- **Qdrant** or **Pinecone** for distributed vector search.
+- **Redis** for caching LangGraph state and conversational history.
+
+---
+
 ## 📚 Documentation
 
 Explore the detailed technical documentation in the [`docs/`](docs/) directory:
