@@ -187,7 +187,7 @@ const INIT_NODES: { id: string; type: string; position: { x: number; y: number }
   { id: 'toolRouter', type: 'workflowNode', position: { x: 470, y: 260 }, data: { label: 'Tool Router',              subtitle: 'route_tools()',        nodeType: 'router', status: 'idle' } },
   { id: 'ragSearch',  type: 'workflowNode', position: { x: 720, y: 80  }, data: { label: 'rag_search',               subtitle: 'Hybrid RAG + Rerank', nodeType: 'tool',   status: 'idle' } },
   { id: 'getKpis',    type: 'workflowNode', position: { x: 720, y: 260 }, data: { label: 'get_kpis',                 subtitle: 'SQLite KPI DB',       nodeType: 'tool',   status: 'idle' } },
-  { id: 'genReport',  type: 'workflowNode', position: { x: 720, y: 440 }, data: { label: 'generate_report_sections', subtitle: 'Multi-RAG Synthesis', nodeType: 'tool',   status: 'idle' } },
+  { id: 'genReport',  type: 'workflowNode', position: { x: 720, y: 440 }, data: { label: 'generate_report_sections', subtitle: 'Single-Pass Multi-Section Synthesis', nodeType: 'tool',   status: 'idle' } },
   { id: 'end',        type: 'workflowNode', position: { x: 470, y: 460 }, data: { label: 'END',                      nodeType: 'end',    status: 'idle' } },
 ];
 

@@ -210,7 +210,7 @@ def generate_report_sections(company: str, year: int, quarter: str) -> str:
         f"### TRANSCRIPT EVIDENCE BUNDLE ({len(source_docs)} passages):\n{context_block}\n\n"
         "─────────────────────────────────────────────────────────────\n"
         "Generate EXACTLY the following five sections. Each section must:\n"
-        "  • Cite every factual claim with [Company | Quarter | Year | section].\n"
+        "  • Cite every factual claim using short numeric references (e.g. [1], [2]) corresponding to the evidence bundle. Do NOT use long text citations.\n"
         "  • Be specific with numbers — do NOT use dollar signs, write 'USD X billion' instead.\n"
         "  • If evidence for a section is genuinely insufficient, write 'INSUFFICIENT_EVIDENCE' "
         "on its own line (this triggers a targeted fallback retrieval).\n\n"
