@@ -1,5 +1,5 @@
 from langchain_core.tools import tool
-from typing import Optional, List, Dict, Any
+from typing import Optional
 from src.retrieval.vector_store import EarningsVectorStore
 from src.generation.qa_chain import get_answer
 from src.extraction.schema import get_engine, get_session_maker, EarningsKPI
@@ -152,58 +152,142 @@ def get_kpis(company: Optional[str] = None, year: Optional[int] = None, quarter:
 
 @tool
 def generate_report_sections(company: str, year: int, quarter: str) -> str:
-    """Retrieves all necessary information to generate a comprehensive investment research brief.
-    Makes multiple targeted RAG calls to gather material for every section of the report:
-    executive summary, segment analysis, strategic drivers, forward guidance, risks, and investment implications.
+    """Generate a comprehensive multi-section investment research brief for a company/period.
+
+    Efficiency design:
+      - ONE broad hybrid RAG retrieval (k=36) covers all report sections in a single pass.
+      - Structured KPIs fetched from DB (no LLM cost).
+      - ONE LLM synthesis call writes all five sections from the shared evidence bundle.
+      - Optional targeted fallback: if the LLM flags insufficient evidence for a section,
+        a single additional rag_search is fired for that section only.
     """
-    # 1. Structured KPIs from database
+    import re as _re
+    from src.generation.qa_chain import get_answer, get_llm
+    from src.generation.prompts import format_source_citation
+
+    # ── 1. Structured KPIs (fast DB lookup, no LLM cost) ────────────────────────
     kpi_data = get_kpis.invoke({"company": company, "year": year, "quarter": quarter})
 
-    # 2. High-level financial performance overview
-    executive_narrative = rag_search.invoke({
-        "query": f"Provide an executive summary of {company}'s overall financial performance in {year} {quarter}. Include total revenue, EPS, operating income, operating margin, and year-over-year growth rates.",
-        "company": company,
-        "year": year,
-        "quarter": quarter
-    })
+    # ── 2. ONE broad retrieval covering all report dimensions ────────────────────
+    # A single comprehensive query ensures BM25 + vector both score well across
+    # all topic keywords (executive, segments, strategy, guidance, risks).
+    BROAD_QUERY = (
+        f"{company} {year} {quarter} earnings call: "
+        "executive financial performance overview, total revenue, EPS, operating income, "
+        "gross margin, operating margin, year-over-year growth rates, "
+        "business segment breakdown, product line performance, segment revenue drivers, "
+        "strategic growth initiatives, new product launches, partnerships, competitive advantages, "
+        "management forward-looking guidance, outlook, next quarter expectations, "
+        "key risks, headwinds, analyst concerns, macroeconomic challenges, investment implications"
+    )
+    REPORT_K = 25  # ~5 chunks per section — covers all five dimensions in one pass
 
-    # 3. Segment and product line analysis
-    segment_narrative = rag_search.invoke({
-        "query": f"Break down {company}'s revenue by business segment and product line in {year} {quarter}. What were the key drivers of growth or decline within each segment?",
-        "company": company,
-        "year": year,
-        "quarter": quarter
-    })
+    vs = _get_vector_store()
+    broad_result = get_answer(
+        question=BROAD_QUERY,
+        vector_store=vs,
+        k=REPORT_K,
+        retrieval_mode="hybrid",
+        company=company,
+        year=year,
+        quarter=quarter,
+        return_context_only=True,  # Skip per-retrieval LLM — we do ONE synthesis below
+    )
 
-    # 4. Strategic growth drivers and catalysts
-    strategic_narrative = rag_search.invoke({
-        "query": f"What were the main strategic growth drivers, new product launches, partnerships, and competitive advantages for {company} in {year} {quarter}? What initiatives did management highlight?",
-        "company": company,
-        "year": year,
-        "quarter": quarter
-    })
+    source_docs   = broad_result.get("source_documents", [])
+    context_block = broad_result.get("context_block", "")  # Already formatted by get_answer
 
-    # 5. Forward-looking guidance and outlook
-    guidance_narrative = rag_search.invoke({
-        "query": f"What was {company}'s forward-looking guidance, outlook, and management commentary on expectations for future quarters in {year} {quarter} earnings call?",
-        "company": company,
-        "year": year,
-        "quarter": quarter
-    })
+    # Build citation index from retrieved docs
+    citations = [format_source_citation(doc.metadata) for doc in source_docs]
+    unique_citations = list(dict.fromkeys(citations))
+    citations_str = "\n".join(f"- {c}" for c in unique_citations) if unique_citations else "No sources retrieved."
 
-    # 6. Key risks, headwinds, and investment implications
-    risk_narrative = rag_search.invoke({
-        "query": f"What were the key risks, headwinds, challenges, and concerns raised by management or analysts about {company} in {year} {quarter}? What are the investment risks?",
-        "company": company,
-        "year": year,
-        "quarter": quarter
-    })
+    # ── 3. ONE synthesis call: all five sections from shared evidence bundle ─────
+    SYNTHESIS_PROMPT = (
+        f"You are a senior investment analyst. Using ONLY the earnings call transcript passages "
+        f"below, write a complete research brief for {company} {quarter} {year}.\n\n"
+        f"### STRUCTURED KPI DATA (from financial database):\n{kpi_data}\n\n"
+        f"### TRANSCRIPT EVIDENCE BUNDLE ({len(source_docs)} passages):\n{context_block}\n\n"
+        "─────────────────────────────────────────────────────────────\n"
+        "Generate EXACTLY the following five sections. Each section must:\n"
+        "  • Cite every factual claim with [Company | Quarter | Year | section].\n"
+        "  • Be specific with numbers — do NOT use dollar signs, write 'USD X billion' instead.\n"
+        "  • If evidence for a section is genuinely insufficient, write 'INSUFFICIENT_EVIDENCE' "
+        "on its own line (this triggers a targeted fallback retrieval).\n\n"
+        "--- EXECUTIVE OVERVIEW ---\n"
+        "(2-3 paragraphs: total revenue, EPS, operating income, margins, YoY growth)\n\n"
+        "--- SEGMENT ANALYSIS ---\n"
+        "(bullet list per segment: revenue, growth rate, key drivers)\n\n"
+        "--- STRATEGIC DRIVERS & CATALYSTS ---\n"
+        "(bullet list: product launches, partnerships, competitive moats, management initiatives)\n\n"
+        "--- FORWARD-LOOKING GUIDANCE ---\n"
+        "(next-quarter revenue guidance, management outlook, any raised/lowered guidance)\n\n"
+        "--- RISKS & HEADWINDS ---\n"
+        "(bullet list: macro risks, competitive threats, analyst concerns, investment cautions)"
+    )
 
+    llm = get_llm()
+    raw = llm.invoke(SYNTHESIS_PROMPT)
+    synthesis_text = raw.content if hasattr(raw, "content") else str(raw)
+    synthesis_text = _re.sub(r"<think>.*?</think>", "", synthesis_text, flags=_re.DOTALL).strip()
+    synthesis_text = synthesis_text.replace("$", "USD ").replace("USD USD ", "USD ")
+
+    # ── 4. Optional per-section fallback (fires only if INSUFFICIENT_EVIDENCE found) ─
+    SECTION_FALLBACK_QUERIES = {
+        "EXECUTIVE OVERVIEW": (
+            f"{company} {year} {quarter} revenue EPS operating income gross margin "
+            "year-over-year growth financial performance summary"
+        ),
+        "SEGMENT ANALYSIS": (
+            f"{company} {year} {quarter} revenue by business segment product line "
+            "breakdown growth decline drivers"
+        ),
+        "STRATEGIC DRIVERS & CATALYSTS": (
+            f"{company} {year} {quarter} strategic growth drivers new products "
+            "partnerships competitive advantages management initiatives"
+        ),
+        "FORWARD-LOOKING GUIDANCE": (
+            f"{company} {year} {quarter} forward guidance outlook next quarter "
+            "revenue expectations projections"
+        ),
+        "RISKS & HEADWINDS": (
+            f"{company} {year} {quarter} risks headwinds challenges macroeconomic "
+            "competitive threats analyst concerns"
+        ),
+    }
+
+    needs_fallback = []
+    for section_name in SECTION_FALLBACK_QUERIES:
+        marker = f"--- {section_name} ---"
+        pos = synthesis_text.find(marker)
+        if pos != -1:
+            next_pos = synthesis_text.find("\n---", pos + len(marker))
+            body = synthesis_text[pos + len(marker): next_pos] if next_pos != -1 else synthesis_text[pos + len(marker):]
+            if "INSUFFICIENT_EVIDENCE" in body:
+                needs_fallback.append(section_name)
+
+    for section_name in needs_fallback:
+        fallback_answer = rag_search.invoke({
+            "query": SECTION_FALLBACK_QUERIES[section_name],
+            "company": company,
+            "year": year,
+            "quarter": quarter,
+            "k_override": 16,
+        })
+        marker = f"--- {section_name} ---"
+        pos = synthesis_text.find(marker)
+        if pos != -1:
+            next_pos = synthesis_text.find("\n---", pos + len(marker))
+            patch_end = next_pos if next_pos != -1 else len(synthesis_text)
+            synthesis_text = (
+                synthesis_text[: pos + len(marker)]
+                + f"\n{fallback_answer}\n"
+                + synthesis_text[patch_end:]
+            )
+
+    # ── 5. Assemble final report ─────────────────────────────────────────────────
     return (
         f"--- STRUCTURED KPIs ---\n{kpi_data}\n\n"
-        f"--- EXECUTIVE OVERVIEW ---\n{executive_narrative}\n\n"
-        f"--- SEGMENT ANALYSIS ---\n{segment_narrative}\n\n"
-        f"--- STRATEGIC DRIVERS & CATALYSTS ---\n{strategic_narrative}\n\n"
-        f"--- FORWARD-LOOKING GUIDANCE ---\n{guidance_narrative}\n\n"
-        f"--- RISKS & HEADWINDS ---\n{risk_narrative}"
+        f"{synthesis_text}\n\n"
+        f"### Source Documents ({len(unique_citations)} unique sources):\n{citations_str}"
     )

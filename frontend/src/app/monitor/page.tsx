@@ -236,7 +236,7 @@ export default function MonitorPage() {
     logsEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [logs]);
 
-  // ── Helpers (functional-update form → no stale closures → [] deps valid) ──
+  // ── Helpers ──
   const addLog = useCallback((type: string, message: string) => {
     const now = new Date();
     const time = now.toLocaleTimeString('en-US', { hour12: false });
@@ -266,11 +266,9 @@ export default function MonitorPage() {
     addLog(ev.type, ev.log ?? `${ev.type}`);
 
     switch (ev.type) {
-
       case 'query_start':
         resetGraph();
         setCurrentQuery(ev.query ?? '');
-        // Mark start as done; animate start→chatbot; put chatbot in running
         setNodeStatus('start', 'completed');
         activateEdge('start-chat', true);
         setNodeStatus('chatbot', 'running');
@@ -286,7 +284,6 @@ export default function MonitorPage() {
 
       case 'tool_call': {
         const tm = ev.tool ? TOOL_MAP[ev.tool] : null;
-        // chatbot finished reasoning → activate chatbot→toolRouter
         setNodeStatus('chatbot', 'completed');
         setNodeStatus('toolRouter', 'running');
         activateEdge('chat-tr', true);
@@ -307,7 +304,6 @@ export default function MonitorPage() {
           activateEdge(tm.backEdge, true);
         }
         setNodeStatus('toolRouter', 'completed');
-        // chatbot receiving result
         setNodeStatus('chatbot', 'running');
         setCurrentNode('chatbot');
         setOutputPreview(ev.output_preview ?? '');
@@ -315,7 +311,6 @@ export default function MonitorPage() {
       }
 
       case 'node_exit':
-        // Final answer — no more tool calls
         setNodeStatus('chatbot', 'completed');
         activateEdge('tr-end', true);
         setNodeStatus('toolRouter', 'completed');
@@ -332,7 +327,6 @@ export default function MonitorPage() {
         break;
 
       case 'error':
-        // Mark any running node as error
         setNodes(ns => ns.map(n =>
           (n.data as any).status === 'running'
             ? { ...n, data: { ...n.data, status: 'error' } }
@@ -341,7 +335,7 @@ export default function MonitorPage() {
         setEdges(es => es.map(e => applyEdge(e, false)));
         break;
     }
-  }, [addLog, resetGraph, setNodeStatus, activateEdge, setCurrentQuery, setCurrentNode, setCurrentTool, setCurrentArgs, setOutputPreview, setNodes]);
+  }, [addLog, resetGraph, setNodeStatus, activateEdge, setCurrentQuery, setCurrentNode, setCurrentTool, setCurrentArgs, setOutputPreview, setNodes, setEdges]);
 
   // ── SSE connection with auto-reconnect ────────────────────────────────────
   useEffect(() => {
@@ -366,6 +360,7 @@ export default function MonitorPage() {
 
     connect();
     return () => { es?.close(); clearTimeout(retry); };
+  // addLog is intentionally excluded — it's stable and we avoid reconnects
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

@@ -58,6 +58,8 @@ AURA transcends the typical "GenAI wrapper" by engineering robust, original solu
 
 - 💡 **LLM Length-Scaling via Psychological Prompt Instruction**: LLMs naturally compress large context windows into broad summaries regardless of context volume. AURA engineers a prompt instruction that *tethers* response length to the quantity of incoming context: *"If you receive many source chunks, you MUST extract distinct insights from each and write a proportionally longer response."* — transforming the model from a "summariser" into a "detailed extractor" dynamically.
 
+- ⚡ **Single-Retrieval Report Synthesis (5 RAG Calls → 1)**: The `generate_report_sections` tool originally made 5 sequential `rag_search` calls — one per report section — over the *same* underlying documents, paying the full hybrid retrieval + cross-encoder reranking + LLM generation cost 5× for every brief. The refactored design issues **one broad hybrid retrieval** (k=25) with a comprehensive multi-topic query, passes the shared 25-chunk evidence bundle to a **single LLM synthesis call** that writes all five sections simultaneously, and only triggers a targeted per-section fallback retrieval if the model explicitly flags `INSUFFICIENT_EVIDENCE`. This cut report latency from 30–60 seconds to **seconds**, eliminated cross-section numerical contradictions caused by independent LLM calls reasoning over slightly different chunk subsets, and surfaced all 25 unique source citations in a unified footer.
+
 ---
 
 ## 📑 Table of Contents

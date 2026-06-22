@@ -305,3 +305,89 @@ Earnings call summaries have extremely high keyword density for terms like "Q3" 
 
 ### L6 — Active RAG is Required for Deep Narrative Extraction
 Static retrieval depths (`k`) are fundamentally flawed because different types of knowledge require different context window sizes. High-level summaries can be extracted at `k=4`, while deep CFO guidance metrics might require `k=16+`. Exposing retrieval parameters directly to the LLM (Active RAG) allows the agent to self-correct and iteratively widen its net when it encounters context starvation.
+
+---
+
+### 10. Redundant Multi-Call Pattern in `generate_report_sections`
+
+**The Challenge:**
+The `generate_report_sections` tool in `tools.py` was generating comprehensive investment research briefs by making **5 separate `rag_search` calls** — one each for executive summary, segment analysis, strategic drivers, forward guidance, and risks. Each call independently triggered a full hybrid retrieval pipeline (BM25 + vector search + cross-encoder reranking) followed by an individual LLM generation call. Since all five calls targeted the **same company, year, and quarter**, they were retrieving from the same underlying document set repeatedly.
+
+**Root Cause:**
+The original design mirrored a naive human writing workflow (research one section at a time). However, in a RAG pipeline, each call carries the full cost of:
+- Hybrid retrieval (vector similarity search + BM25 keyword lookup)
+- Cross-encoder reranking over the merged candidate pool
+- A full LLM generation call (~1,000 output tokens per section)
+
+With 5 calls, the system performed **5× the retrieval, 5× the reranking, and 5× the LLM latency** over the same document corpus. This produced high latency (30–60 seconds per report), high token spend, and inconsistent cross-section outputs (each section's LLM call could reason over slightly different chunk subsets, causing numerical contradictions between sections).
+
+**The Resolution — Single-Retrieval + One-Shot Synthesis:**
+Refactored `generate_report_sections` in [`src/agents/tools.py`](file:///c:/Users/ADMIN/Documents/3rd_Year_Projects/Finance_RAG_Project/src/agents/tools.py) with a three-stage design:
+
+**Stage 1 — Broad Retrieval (k=25, `return_context_only=True`):**
+A single comprehensive query explicitly naming all five report dimensions is issued. The `return_context_only=True` flag runs the full hybrid retrieval + reranking pipeline but **skips the LLM**, returning only the top-25 ranked chunks as raw context.
+
+```python
+BROAD_QUERY = (
+    f"{company} {year} {quarter} earnings call: "
+    "executive financial performance overview, total revenue, EPS, operating income, "
+    "gross margin, operating margin, year-over-year growth rates, "
+    "business segment breakdown, product line performance, segment revenue drivers, "
+    "strategic growth initiatives, new product launches, partnerships, competitive advantages, "
+    "management forward-looking guidance, outlook, next quarter expectations, "
+    "key risks, headwinds, analyst concerns, macroeconomic challenges, investment implications"
+)
+broad_result = get_answer(
+    question=BROAD_QUERY, vector_store=vs, k=25,
+    retrieval_mode="hybrid", company=company, year=year, quarter=quarter,
+    return_context_only=True,  # No LLM call here
+)
+```
+
+**Stage 2 — One-Shot Synthesis:**
+All 25 retrieved chunks plus the structured KPI data are passed to **one single LLM call** that writes all five sections simultaneously. The synthesis prompt instructs the model to write `INSUFFICIENT_EVIDENCE` if any section genuinely lacks evidence.
+
+**Stage 3 — Targeted Fallback (fires only if needed):**
+After synthesis, the output is scanned for `INSUFFICIENT_EVIDENCE` markers. Only sections flagged as insufficient trigger a follow-up `rag_search` call with `k_override=16`. In practice (as validated on Apple Q3 2024), k=25 was sufficient for all five sections with zero fallback triggered.
+
+**Outcome:**
+
+| Metric | Before (5 calls) | After (1+1 design) |
+|---|---|---|
+| Retrieval passes | 5× hybrid + rerank | **1×** hybrid + rerank |
+| LLM calls | 5 | **1** |
+| Report latency | 30–60 seconds | **Seconds** |
+| Cross-section consistency | Variable (5 independent contexts) | **Unified** (shared 25-chunk bundle) |
+| Citation coverage | Per-section only | **All 25 unique sources surfaced** |
+
+---
+
+### 11. Stale Closure Bug in SSE Monitor — Multi-Session Feature Rollback
+
+**The Challenge:**
+An attempt was made to add multi-user session filtering to the live LangGraph Workflow Monitor at `frontend/src/app/monitor/page.tsx`. The goal was to let users switch between concurrent sessions via a dropdown, with each session's events filtered by `thread_id`. After implementing:
+- Backend `_emit()` wrapper to stamp `thread_id` on every SSE event
+- Frontend `activeThreads` / `selectedThread` state + session selector dropdown
+- `selectedThreadRef` for stale-closure-safe filtering inside `handleEvent`
+
+…the monitor broke for the existing single-user case as well. Real-time graph animations stopped updating and switching sessions left the graph blank and static.
+
+**Root Cause — Stale Closure in the SSE `useEffect`:**
+The SSE `useEffect` has `[]` deps (intentional — reconnecting on every render would kill the stream). This means it captures `handleEvent` **at mount time** via closure. When our multi-session feature added `setActiveThreads` state updates, React recreated `handleEvent` with new references on every render. But the SSE listener was still calling the **original frozen version** from mount — one with no knowledge of the updated session state. This caused the graph state update callbacks to refer to stale, disconnected state setters.
+
+The `handleEventRef` bridge pattern (storing the latest `handleEvent` in a `useRef` and calling `handleEventRef.current()` in the SSE listener) was implemented and correctly diagnosed as the right fix. However, the added complexity of managing `selectedThreadRef`, `activeThreads` state, and the `useEffect` sync chain introduced enough surface area for subtle re-render cycles.
+
+**The Decision — Revert to Single-Session:**
+After weighing the complexity vs. benefit, the multi-session feature was **fully reverted** to restore the original clean single-user monitoring experience. The reasoning:
+1. AURA is primarily a single-user research tool; simultaneous multi-user monitoring is a niche edge case.
+2. The original monitor's real-time reliability (the core value) is more important than the multi-session switcher feature.
+3. The stale closure root cause, while solvable via `handleEventRef`, would have made the SSE listener harder to maintain.
+
+**Engineering Learning:**
+React's `useEffect` with `[]` deps creates permanent stale closures for any callback defined inside the component. The canonical pattern to bridge this is `useRef` + a sync `useEffect`, but this must be applied from the start if the callback will ever read state that changes. Retrofitting it onto an existing stable codebase introduces risk that often outweighs the feature value.
+
+---
+
+### L7 — One Broad Retrieval Beats Many Narrow Retrievals for Multi-Section Generation
+
+When generating a document with multiple thematic sections (executive summary, segment analysis, guidance, risks), the natural instinct is to make one targeted retrieval call per section. This feels precise but is deeply inefficient: it repeats the full retrieval+rerank pipeline over the same document set `N` times and forces `N` independent LLM calls that cannot reason across each other's evidence. A single broad retrieval with a comprehensive multi-topic query and a large enough `k` (25–40 for a 5-section report) covers all dimensions in one pass. One shared LLM synthesis call then produces internally consistent output across all sections, with zero risk of numerical contradictions between sections that were independently generated.

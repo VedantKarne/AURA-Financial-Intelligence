@@ -200,6 +200,15 @@ A dedicated observability page built with `@xyflow/react` (React Flow) that visu
 - **Visual Polish**: Active nodes display a pulsating golden border (`#ECC94B`) while executing. Edges animate to trace the active path.
 - **Side Panel Logs**: Shows the current query, active tool name, live tool arguments, output previews, and a timestamped event log.
 
+> [!WARNING]
+> **Multi-User Limitations of the Workflow Monitor**
+>
+> While AURA's backend architecture fully supports isolated concurrent sessions — each browser tab receives its own `thread_id` via `crypto.randomUUID()`, and LangGraph maintains separate memory checkpoints per thread — there are two important limitations to be aware of:
+>
+> 1. **API Rate Limit with a Single Key**: Running multiple simultaneous queries against the same Groq API key will rapidly exhaust the token-per-minute (TPM) quota. With a free-tier key, even two concurrent users can trigger `rate_limit_exceeded` errors. For true multi-user deployments, either upgrade to a paid Groq plan or issue separate API keys per user.
+>
+> 2. **Monitor Shows One Session at a Time**: The Live Agent Workflow Monitor at `/monitor` subscribes to a global SSE event bus. It does **not** offer the ability to select or switch between multiple active user sessions. When multiple users send queries simultaneously, the monitor will display an interleaved stream of events from all sessions, which can make the graph animation appear erratic or inconsistent. The monitor is designed and optimised for observing a **single user's query execution flow** at a time.
+
 ---
 
 ## Markdown Rendering
