@@ -436,7 +436,8 @@ AURA is an academic demonstration of Multi-Agent Retrieval-Augmented Generation 
 - [LangGraph](https://langchain-ai.github.io/langgraph/) — Stateful agent graph compilation
 - [ChromaDB](https://www.trychroma.com/) — Local vector store with metadata filtering
 - [Sentence Transformers](https://www.sbert.net/) — `all-MiniLM-L6-v2` embeddings & `ms-marco-MiniLM-L-6-v2` reranker
-- Financial transcript dataset covering Q1 2023 – Q4 2024 earnings calls
+- The base Financial transcripts were sourced from the Kaggle dataset: 
+  [Earning Call Transcripts (2023-2024)](https://www.kaggle.com/datasets/ramssvimala/earning-call-transcripts)
 
 ---
 
