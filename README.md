@@ -2,7 +2,7 @@
 
 # 📊 AURA — Financial Earnings Intelligence Platform
 
-<!-- SEO Keywords: Multi-Agent RAG, LangGraph, FastAPI, Next.js, ChromaDB, Financial AI, Earnings Calls Analysis, Groq, Qwen3-32B, Llama-3.3-70B, HuggingFace, Reciprocal Rank Fusion, Cross-Encoder, AI Agent, SQLite, TypeScript, React, Active RAG, Self-Correction, Precision vs Recall Trade-off, Entity Starvation, LLM Primacy Bias, TailwindCSS, Financial Intelligence Platform -->
+<!-- SEO Keywords: Multi-Agent RAG, LangGraph, FastAPI, Next.js, ChromaDB, Financial AI, Earnings Calls Analysis, Groq, Qwen3-32B, Llama-3.3-70B, Ollama, Local LLM, LangChain Ollama, Async KPI Backfill, HuggingFace, Reciprocal Rank Fusion, Cross-Encoder, AI Agent, SQLite, SQLAlchemy, Pydantic, asyncio, TypeScript, React, Active RAG, Self-Correction, Precision vs Recall Trade-off, Entity Starvation, LLM Primacy Bias, TailwindCSS, Financial Intelligence Platform, KPI Extraction, Earnings Intelligence, Structured Output -->
 
 [![Python](https://img.shields.io/badge/Python-3.11%2B-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
 [![Next.js](https://img.shields.io/badge/Next.js-14-000000?style=for-the-badge&logo=nextdotjs&logoColor=white)](https://nextjs.org)
@@ -11,6 +11,7 @@
 <br>
 [![LangGraph](https://img.shields.io/badge/LangGraph-Multi--Agent-FF6B35?style=for-the-badge&logo=langchain&logoColor=white)](https://langchain-ai.github.io/langgraph/)
 [![Groq](https://img.shields.io/badge/Groq-Qwen_32B-F55036?style=for-the-badge)](https://groq.com)
+[![Ollama](https://img.shields.io/badge/Ollama-Local_LLM-000000?style=for-the-badge&logo=ollama&logoColor=white)](https://ollama.com)
 [![HuggingFace](https://img.shields.io/badge/HuggingFace-Cross--Encoders-FFD21E?style=for-the-badge&logo=huggingface&logoColor=black)](https://huggingface.co)
 <br>
 [![ChromaDB](https://img.shields.io/badge/ChromaDB-Vector_Store-FF69B4?style=for-the-badge)](https://trychroma.com/)
@@ -316,6 +317,7 @@ Explore the detailed technical documentation in the [`docs/`](docs/) directory:
 | 6 | Dockerization | [Phase 6 →](features_and_learnings/phase6_challenges_and_solutions.md) |
 | 7 | RAG Quality | [Phase 7 →](features_and_learnings/phase7_challenges_and_solutions.md) |
 | 8 | Workflow Monitor | [Phase 8 →](features_and_learnings/phase8_challenges_and_solutions.md) |
+| 9 | KPI Backfill | [Phase 9 →](features_and_learnings/Phase_9_Challenges_and_solutions.md) |
 
 **Master Walkthrough:** [walkthrough.md →](walkthrough.md)
 
@@ -351,6 +353,7 @@ Explore the detailed technical documentation in the [`docs/`](docs/) directory:
 | **6 — Dockerization** | Production ops | Multi-stage Docker, Compose networking, volume persistence |
 | **7 — RAG Quality** | Intelligence accuracy | 3× buffer retrieval, round-robin overflow, entity-grouped context, table citation safety, dual-layer prompts |
 | **8 — Workflow Monitor** | Observability | Live React Flow graph, SSE event bus, async threadpool unblocking, auto-retry parser |
+| **9 — KPI Backfill** | Data completeness | Async Ollama backfill script, single-pass `AllKPIs` schema, composite DB key fix, `langchain-ollama` migration |
 
 ---
 
@@ -390,7 +393,7 @@ Finance_RAG_Project/
 │   ├── ingestion/              # Transcript parsing & indexing pipeline
 │   ├── retrieval/              # Vector, BM25, RRF, reranker, router
 │   ├── generation/             # Prompts, RAG chain, quota allocation
-│   ├── extraction/             # KPI extractor, SQLite ORM schema
+│   ├── extraction/             # KPI extractor, SQLite ORM schema, backfill_kpis.py
 │   ├── agents/                 # LangGraph tools & orchestrator
 │   └── api/                    # FastAPI server & system instructions
 ├── frontend/                   # Next.js 14 premium cockpit UI
@@ -407,7 +410,7 @@ Finance_RAG_Project/
 │   ├── Data_Ingestion_Pipeline.png
 │   ├── Detailed_RAG_Arhitecture_Mindmap.png
 │   └── AI_Agent_Workflow_LangGraph_Structure.png
-├── features_and_learnings/     # Per-phase engineering logs (Phases 1–7)
+├── features_and_learnings/     # Per-phase engineering logs (Phases 1–9)
 ├── config/
 │   ├── config.yaml             # All system parameters (models, paths, thresholds)
 │   └── .env                    # GROQ_API_KEY (gitignored)
@@ -466,7 +469,7 @@ AURA is an academic demonstration of Multi-Agent Retrieval-Augmented Generation 
 
 <div align="center">
 
-**Seven phases of iteration. One mission: financial intelligence without hallucination.**
+**Nine phases of iteration. One mission: financial intelligence without hallucination.**
 
 [Documentation](docs/) • [Walkthrough](walkthrough.md) • [Engineering Logs](features_and_learnings/) • [Detailed RAG Architecture](docs/detailed_rag_architecture.md)
 

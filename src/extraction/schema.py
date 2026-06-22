@@ -4,7 +4,7 @@ src/extraction/schema.py
 SQLAlchemy database models for extracted financial KPIs.
 """
 
-from sqlalchemy import Column, Integer, String, Float, Text, create_engine
+from sqlalchemy import Column, Integer, String, Float, Text, create_engine, UniqueConstraint
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
@@ -22,7 +22,11 @@ class EarningsKPI(Base):
     company = Column(String, index=True)         # "Apple"
     year = Column(Integer, index=True)           # 2024
     quarter = Column(String, index=True)         # "Q3"
-    period = Column(String, index=True, unique=True) # "2024-Q3_AAPL" - to ensure no duplicates per company per quarter
+    period = Column(String, index=True)          # "2024-Q3"
+
+    __table_args__ = (
+        UniqueConstraint('ticker', 'period', name='uix_ticker_period'),
+    )
 
     # Financial Actuals
     revenue_b = Column(Float, nullable=True)           # Revenue in $B
