@@ -10,7 +10,7 @@
 
 1. [System Ecosystem Overview](#1-system-ecosystem-overview)
 2. [Data Ingestion Pipeline](#2-data-ingestion-pipeline)
-3. [Dual-Storage Indexing Layer](#3-dual-storage-indexing-layer)
+3. [Tri-Storage Indexing Layer](#3-tri-storage-indexing-layer)
 4. [Hybrid Retrieval & Reranking Engine](#4-hybrid-retrieval--reranking-engine)
 5. [LangGraph Agent Orchestrator](#5-langgraph-agent-orchestrator)
 6. [FastAPI Gateway](#6-fastapi-gateway)
@@ -23,7 +23,7 @@
 
 ## 1. System Ecosystem Overview
 
-AURA is a four-layer system: raw transcript files feed a dual-index storage engine, which is queried by a hybrid RAG retrieval engine, orchestrated by a LangGraph state-machine agent, and served via a FastAPI + Next.js application.
+AURA is a four-layer system: raw transcript files feed a tri-store storage engine, which is queried by a hybrid RAG retrieval engine, orchestrated by a LangGraph state-machine agent, and served via a FastAPI + Next.js application.
 
 ```mermaid
 flowchart TB
@@ -40,13 +40,13 @@ flowchart TB
     end
     class Data_Ingestion_Pipeline ingestion
 
-    subgraph Dual_Storage_Layer [2. Dual Storage Layer]
+    subgraph Tri_Storage_Layer [2. Tri-Storage Layer]
         direction TB
         B1[(ChromaDB Vector Store<br/>data/chroma_db)]
         B2[(BM25 Lexical Index<br/>data/bm25_index)]
         B3[(SQL KPI Database<br/>data/finance_kpis.db)]
     end
-    class Dual_Storage_Layer storage
+    class Tri_Storage_Layer storage
 
     A4 -->|Vector + Metadata Chunks| B1
     A3 -->|Lexical Corpus| B2
@@ -171,7 +171,7 @@ Individual semantic chunks
 
 ---
 
-## 3. Dual-Storage Indexing Layer
+## 3. Tri-Storage Indexing Layer
 
 | Store | Technology | Strengths |
 |---|---|---|
