@@ -18,7 +18,6 @@ Key design decisions:
 
 from __future__ import annotations
 
-import logging
 import os
 from pathlib import Path
 from typing import Optional
@@ -29,8 +28,7 @@ from langchain_chroma import Chroma
 from langchain_core.documents import Document
 
 from src.ingestion.embedder import get_embedding_model
-
-logger = logging.getLogger(__name__)
+from src.utils.logger import logger
 
 # ---------------------------------------------------------------------------
 # Constants
@@ -148,14 +146,11 @@ class EarningsVectorStore:
             self._store.add_documents(documents=batch_docs, ids=batch_ids)
             added += len(batch_docs)
 
-            print(
-                f"\r  Indexing batch {batch_num + 1}/{total_batches} "
-                f"({added}/{len(docs)} chunks)",
-                end="",
-                flush=True,
+            logger.info(
+                f"Indexing batch {batch_num + 1}/{total_batches} "
+                f"({added}/{len(docs)} chunks)"
             )
 
-        print()  # newline
         logger.info(f"Added {added} chunks to collection '{self.collection_name}'.")
         return added
 
@@ -227,22 +222,26 @@ class EarningsVectorStore:
         try:
             # Works in both langchain-chroma 0.2.x and 1.x
             return self._store._collection.count()
-        except Exception as e1:
-            logger.warning(f"Chroma count direct failed: {e1}")
+        except AttributeError as e1:
+            logger.warning(f"Chroma count direct failed (AttributeError): {e1}")
             try:
                 # Fallback: use langchain-chroma's .get() API
                 result = self._store.get()
                 return len(result.get("ids", []))
             except Exception as e2:
-                logger.error(f"Chroma count fallback failed: {e2}")
+                logger.exception(f"Chroma count fallback failed: {e2}")
                 return -1
+        except Exception as e:
+            logger.exception(f"Unexpected error during Chroma count: {e}")
+            return -1
 
     def get_all_metadata(self) -> list[dict]:
         """Return metadata for all documents (no text). For debugging."""
         try:
             result = self._store._collection.get(include=["metadatas"])
             return result.get("metadatas", [])
-        except Exception:
+        except Exception as e:
+            logger.exception(f"Failed to get metadata: {e}")
             return []
 
     def reset_collection(self) -> None:
@@ -338,5 +337,5 @@ def build_metadata_filter(
 # ---------------------------------------------------------------------------
 if __name__ == "__main__":
     store = EarningsVectorStore()
-    print(store)
-    print(f"\nTotal chunks in store: {store.count()}")
+    logger.info(str(store))
+    logger.info(f"Total chunks in store: {store.count()}")

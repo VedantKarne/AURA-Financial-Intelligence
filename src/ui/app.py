@@ -23,6 +23,8 @@ from pathlib import Path
 
 import streamlit as st
 
+from src.utils.logger import logger
+
 # ── Project root on sys.path ────────────────────────────────────────────────
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 if str(PROJECT_ROOT) not in sys.path:
@@ -409,6 +411,7 @@ with st.sidebar:
                 "```\npython -m src.ingestion.pipeline\n```"
             )
     except Exception as e:
+        logger.exception(f"Could not load vector store: {e}")
         st.error(f"Could not load vector store: {e}")
         st.session_state.vector_store = None
 
@@ -802,4 +805,5 @@ with tab_kpi:
             st.markdown('### EPS Trend')
             st.bar_chart(company_df.set_index('Period')['EPS'])
     except Exception as e:
+        logger.exception(f"Error loading KPI data: {e}")
         st.error(f'Error loading KPI data: {e}')

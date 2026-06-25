@@ -10,7 +10,6 @@ Supports metadata filtering matching vector_store filters.
 
 from __future__ import annotations
 
-import logging
 import pickle
 import re
 from pathlib import Path
@@ -19,7 +18,7 @@ from typing import Optional
 from langchain_core.documents import Document
 from rank_bm25 import BM25Okapi
 
-logger = logging.getLogger(__name__)
+from src.utils.logger import logger
 
 
 def tokenize(text: str) -> list[str]:
@@ -120,7 +119,7 @@ class EarningsBM25Retriever:
             )
             return True
         except Exception as e:
-            logger.error(f"Failed to load BM25 index: {e}")
+            logger.exception(f"Failed to load BM25 index: {e}")
             return False
 
     def retrieve(

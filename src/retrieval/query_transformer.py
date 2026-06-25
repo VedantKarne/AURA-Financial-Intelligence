@@ -7,13 +7,12 @@ Query transformation layer for Query Rewrite (chat history) and Multi-Query Expa
 from __future__ import annotations
 
 import json
-import logging
 import re
 from typing import Optional
 
 from langchain_groq import ChatGroq
 
-logger = logging.getLogger(__name__)
+from src.utils.logger import logger
 
 
 class QueryTransformer:
@@ -67,7 +66,7 @@ Query to Rewrite: {query}
             logger.info(f"Query rewritten: '{query}' -> '{rewritten}'")
             return rewritten
         except Exception as e:
-            logger.warning(f"Query rewrite failed, using original: {e}")
+            logger.exception(f"Query rewrite failed, using original: {e}")
             return query
 
     def generate_multi_queries(self, query: str) -> list[str]:
@@ -98,7 +97,7 @@ Original Query: {query}
                 logger.info(f"Multi-query generated: {queries}")
                 return [q.strip() for q in queries[:3]]
         except Exception as e:
-            logger.warning(f"Multi-query generation failed, returning original list: {e}")
+            logger.exception(f"Multi-query generation failed, returning original list: {e}")
 
         # Fallback to simple query expansion variations
         return [

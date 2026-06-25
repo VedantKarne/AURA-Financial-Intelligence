@@ -17,12 +17,11 @@ function used by the ingestion pipeline.
 
 from __future__ import annotations
 
-import logging
 from typing import Optional
 
 from langchain_huggingface import HuggingFaceEmbeddings
 
-logger = logging.getLogger(__name__)
+from src.utils.logger import logger
 
 # ---------------------------------------------------------------------------
 # Default model configuration (matches config.yaml)
@@ -111,15 +110,10 @@ def embed_texts(
         all_embeddings.extend(embeddings)
 
         if show_progress:
-            print(
-                f"\r  Embedding batch {batch_num + 1}/{total_batches} "
-                f"({start_idx + len(batch)}/{len(texts)} chunks)",
-                end="",
-                flush=True,
+            logger.info(
+                f"Embedding batch {batch_num + 1}/{total_batches} "
+                f"({start_idx + len(batch)}/{len(texts)} chunks)"
             )
-
-    if show_progress:
-        print()  # newline after progress
 
     return all_embeddings
 
@@ -134,9 +128,9 @@ if __name__ == "__main__":
         "Microsoft Azure revenue growth was 29% in constant currency.",
     ]
 
-    print("Testing embedding model...")
+    logger.info("Testing embedding model...")
     embeddings = embed_texts(test_sentences, show_progress=True)
 
-    print(f"\nEmbedded {len(embeddings)} sentences.")
-    print(f"Embedding dimensions: {len(embeddings[0])}")
-    print(f"First vector (first 5 dims): {embeddings[0][:5]}")
+    logger.info(f"Embedded {len(embeddings)} sentences.")
+    logger.info(f"Embedding dimensions: {len(embeddings[0])}")
+    logger.info(f"First vector (first 5 dims): {embeddings[0][:5]}")

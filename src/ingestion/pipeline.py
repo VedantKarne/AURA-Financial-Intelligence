@@ -30,7 +30,6 @@ _orig_metadata_version = importlib.metadata.version
 importlib.metadata.version = lambda pkg: "0.23.0" if pkg == "tokenizers" else _orig_metadata_version(pkg)
 
 import argparse
-import logging
 import sys
 import time
 from pathlib import Path
@@ -45,16 +44,7 @@ from src.ingestion.chunker import chunk_document
 from src.retrieval.vector_store import EarningsVectorStore
 from src.extraction.schema import get_engine, init_db, get_session_maker, EarningsKPI
 from src.extraction.kpi_extractor import extract_kpis_from_text
-
-# ---------------------------------------------------------------------------
-# Logging setup
-# ---------------------------------------------------------------------------
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s [%(levelname)s] %(name)s — %(message)s",
-    datefmt="%H:%M:%S",
-)
-logger = logging.getLogger(__name__)
+from src.utils.logger import logger
 
 # ---------------------------------------------------------------------------
 # Default paths (relative to project root)
@@ -155,42 +145,42 @@ def run_ingestion_pipeline(
     """
     t_start = time.time()
 
-    print("\n" + "=" * 65)
-    print("  Financial Earnings Intelligence — Ingestion Pipeline")
-    print("=" * 65)
+    logger.info("=" * 65)
+    logger.info("Financial Earnings Intelligence — Ingestion Pipeline")
+    logger.info("=" * 65)
 
     # ------------------------------------------------------------------
     # 1. Initialise vector store
     # ------------------------------------------------------------------
-    print(f"\n[1/4] Initialising ChromaDB at '{db_path}' ...")
+    logger.info(f"[1/4] Initialising ChromaDB at '{db_path}' ...")
     store = EarningsVectorStore(db_path=str(db_path))
 
     sql_db_path = db_path.parent / "finance_kpis.db"
-    print(f"      Initialising SQL DB at '{sql_db_path}' ...")
+    logger.info(f"Initialising SQL DB at '{sql_db_path}' ...")
     engine = get_engine(str(sql_db_path))
     init_db(engine)
     Session = get_session_maker(engine)
     session = Session()
 
     if force_reset:
-        print("      [WARN] force_reset=True - clearing existing collection and SQL DB.")
+        logger.warning("force_reset=True - clearing existing collection and SQL DB.")
         store.reset_collection()
         session.query(EarningsKPI).delete()
         session.commit()
 
     existing_count = store.count()
     existing_kpis = session.query(EarningsKPI).count()
-    print(f"      Existing chunks in collection: {existing_count}")
-    print(f"      Existing KPIs in SQL DB: {existing_kpis}")
+    logger.info(f"Existing chunks in collection: {existing_count}")
+    logger.info(f"Existing KPIs in SQL DB: {existing_kpis}")
 
     # ------------------------------------------------------------------
     # 2. Discover files
     # ------------------------------------------------------------------
-    print(f"\n[2/4] Discovering transcript files in '{data_dir}' ...")
+    logger.info(f"[2/4] Discovering transcript files in '{data_dir}' ...")
     files = discover_transcript_files(data_dir)
-    print(f"      Found: {len(files)} files")
+    logger.info(f"Found: {len(files)} files")
     for f in files:
-        print(f"        * {f.parent.name}/{f.name}")
+        logger.debug(f"* {f.parent.name}/{f.name}")
 
     if not files:
         logger.error("No transcript files found. Check data_dir path.")
@@ -199,14 +189,14 @@ def run_ingestion_pipeline(
     # ------------------------------------------------------------------
     # 3. Parse + chunk all files
     # ------------------------------------------------------------------
-    print(f"\n[3/4] Parsing and chunking {len(files)} files ...")
+    logger.info(f"[3/4] Parsing and chunking {len(files)} files ...")
     all_chunks: list[dict] = []
     files_processed = 0
     chunk_counts_by_file = {}
 
     for i, filepath in enumerate(files):
         label = f"{filepath.parent.name}/{filepath.name}"
-        print(f"  [{i+1:02d}/{len(files)}] {label}")
+        logger.info(f"[{i+1:02d}/{len(files)}] {label}")
 
         result = ingest_file(
             filepath,
@@ -221,7 +211,7 @@ def run_ingestion_pipeline(
             all_chunks.extend(chunks)
             n_summary = sum(1 for c in chunks if c["metadata"]["section"] == "summary")
             n_trans   = sum(1 for c in chunks if c["metadata"]["section"] == "transcript")
-            print(f"         -> {len(chunks)} chunks (summary: {n_summary}, transcript: {n_trans})")
+            logger.info(f"-> {len(chunks)} chunks (summary: {n_summary}, transcript: {n_trans})")
             
             # Extract KPIs if not already present
             existing = session.query(EarningsKPI).filter_by(period=metadata["period"]).first()
@@ -230,34 +220,33 @@ def run_ingestion_pipeline(
                 kpi_record = extract_kpis_from_text(summary_text, metadata)
                 session.add(kpi_record)
                 session.commit()
-                print(f"         -> Extracted KPIs for {metadata['period']}")
+                logger.info(f"-> Extracted KPIs for {metadata['period']}")
             else:
-                print(f"         -> KPIs already exist for {metadata['period']}, skipping extraction.")
+                logger.info(f"-> KPIs already exist for {metadata['period']}, skipping extraction.")
         else:
-            print(f"         [WARN] Skipped (no chunks produced).")
+            logger.warning(f"Skipped (no chunks produced).")
 
-    print(f"\n  Total chunks to index: {len(all_chunks)}")
+    logger.info(f"Total chunks to index: {len(all_chunks)}")
 
     # ------------------------------------------------------------------
     # 4. Add to vector store
     # ------------------------------------------------------------------
-    print(f"\n[4/4] Embedding and indexing chunks into ChromaDB ...")
+    logger.info(f"[4/4] Embedding and indexing chunks into ChromaDB ...")
     chunks_added = store.add_chunks(all_chunks)
 
     # ------------------------------------------------------------------
     # 5. Build and save BM25 index
     # ------------------------------------------------------------------
-    print(f"\n[BM25] Building and serialising BM25 index ...")
+    logger.info(f"[BM25] Building and serialising BM25 index ...")
     try:
         from src.retrieval.bm25_retriever import EarningsBM25Retriever
         bm25_dir = PROJECT_ROOT / "data" / "bm25_index"
         bm25_retriever = EarningsBM25Retriever(index_dir=str(bm25_dir))
         bm25_retriever.build_index(all_chunks)
         bm25_retriever.save()
-        print("      BM25 index successfully built and saved.")
+        logger.info("BM25 index successfully built and saved.")
     except Exception as e:
-        logger.error(f"Failed to build BM25 index: {e}")
-        print(f"      [WARN] Failed to build BM25 index: {e}")
+        logger.exception(f"Failed to build BM25 index: {e}")
 
     # ------------------------------------------------------------------
     # Summary
@@ -265,16 +254,16 @@ def run_ingestion_pipeline(
     elapsed = round(time.time() - t_start, 1)
     final_count = store.count()
 
-    print("\n" + "=" * 65)
-    print("  [OK] Ingestion Complete")
-    print("=" * 65)
-    print(f"  Files found:       {len(files)}")
-    print(f"  Files processed:   {files_processed}")
-    print(f"  Total chunks:      {len(all_chunks)}")
-    print(f"  Chunks added:      {chunks_added}")
-    print(f"  Total in store:    {final_count}")
-    print(f"  Elapsed:           {elapsed}s")
-    print("=" * 65 + "\n")
+    logger.info("=" * 65)
+    logger.info("[OK] Ingestion Complete")
+    logger.info("=" * 65)
+    logger.info(f"Files found:       {len(files)}")
+    logger.info(f"Files processed:   {files_processed}")
+    logger.info(f"Total chunks:      {len(all_chunks)}")
+    logger.info(f"Chunks added:      {chunks_added}")
+    logger.info(f"Total in store:    {final_count}")
+    logger.info(f"Elapsed:           {elapsed}s")
+    logger.info("=" * 65)
 
     return {
         "files_found":      len(files),

@@ -68,9 +68,9 @@ The citation format `[Apple | Q3 | 2023 | summary]` contains `|` — the markdow
 
 Standard RAG hardcodes candidate pool limits (e.g., `20`), causing the cross-encoder reranker to receive an insufficient pool when users request higher context richness. AURA dynamically scales the pool: `candidate_pool_limit = max(20, k + 10)`, ensuring the reranker always has a sufficiently rich pool regardless of the user's slider position.
 
-- 🗄️ **Quantitative vs. Qualitative Routing (Tri-Store Architecture)**: 
+- 🗄️ **Quantitative vs. Qualitative Routing (Dual-Store Architecture)**: 
 
-Financial queries split across two fundamentally different data modalities — qualitative narrative and hard quantitative figures. AURA separates these into three purpose-built storage backends: **ChromaDB** (dense vector store) for semantic narrative retrieval, **BM25 Okapi** (serialized lexical index) for exact ticker/metric keyword matching, and a **Pydantic-validated SQLite database** for provably correct KPI lookups. ChromaDB and BM25 together serve qualitative hybrid retrieval — they are fused via Reciprocal Rank Fusion. SQLite is a completely separate routing path: the Query Router intercepts `comparison_query` intent upstream and issues structured SQLAlchemy queries, bypassing vector search entirely. Three stores, three data modalities, zero cross-contamination.
+LLMs hallucinate reported financial numbers when they're treated as plain text in vector embeddings. AURA routes all hard KPI queries (Revenue, EPS, Gross Margin) directly to a strict Pydantic-validated SQLite database, isolating quantitative extraction from vector search entirely and guaranteeing provably correct numerical answers.
 
 - 🧹 **Domain-Specific Corpus Noise Elimination**: 
 
@@ -148,7 +148,7 @@ cd frontend && npm install && npm run dev
 
 ### 🔍 Hybrid Retrieval Engine
 
-- **Tri-index search**: Dense semantic vectors (ChromaDB + `all-MiniLM-L6-v2`), sparse keyword index (BM25Okapi pkl), and a structured KPI database (SQLite). ChromaDB + BM25 are fused via RRF for qualitative queries; SQLite is a separate routing path for hard numerical lookups — the three stores are never mixed
+- **Dual-index search**: Dense vector (ChromaDB + `all-MiniLM-L6-v2`) + sparse keyword (BM25Okapi) running in parallel
 - **Reciprocal Rank Fusion**: Merges ranked candidate lists without score normalization — scale-invariant and consistently outperforms linear combination
 - **Cross-Encoder Reranking**: Local `ms-marco-MiniLM-L-6-v2` scores `(query, passage)` pairs at deep interaction level
 
@@ -205,13 +205,13 @@ flowchart TB
     end
     class Data_Ingestion_Pipeline ingestion
 
-    subgraph Tri_Storage_Layer [2. Tri-Storage Layer]
+    subgraph Dual_Storage_Layer [2. Dual Storage Layer]
         direction TB
         B1[(ChromaDB Vector Store<br/>data/chroma_db)]
         B2[(BM25 Lexical Index<br/>data/bm25_index)]
         B3[(SQL KPI Database<br/>data/finance_kpis.db)]
     end
-    class Tri_Storage_Layer storage
+    class Dual_Storage_Layer storage
 
     A4 -->|Vector + Metadata Chunks| B1
     A3 -->|Lexical Corpus| B2

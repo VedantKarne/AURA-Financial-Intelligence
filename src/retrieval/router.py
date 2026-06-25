@@ -7,13 +7,12 @@ Query Router deciding the best retrieval strategy based on query content.
 from __future__ import annotations
 
 import json
-import logging
 import re
 from typing import Optional
 
 from langchain_groq import ChatGroq
 
-logger = logging.getLogger(__name__)
+from src.utils.logger import logger
 
 # List of keywords indicating quantitative or exact phrase queries (optimal for BM25)
 BM25_KEYWORDS = [
@@ -180,6 +179,6 @@ Query: {query}
                     "is_comparison": data["strategy"] in ["comparison_query", "multi_query"]
                 }
         except Exception as e:
-            logger.warning(f"LLM routing failed, falling back to rule-based: {e}")
+            logger.exception(f"LLM routing failed, falling back to rule-based: {e}")
 
         return self.route_query_rule_based(query)
