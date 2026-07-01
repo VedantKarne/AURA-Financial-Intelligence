@@ -196,63 +196,97 @@ flowchart TB
     classDef storage fill:#d1fae5,stroke:#059669,stroke-width:2px,color:#065f46,font-weight:bold
     classDef logic fill:#fef3c7,stroke:#d97706,stroke-width:2px,color:#78350f,font-weight:bold
     classDef ui fill:#f5f3ff,stroke:#7c3aed,stroke-width:2px,color:#5b21b6,font-weight:bold
+    classDef llm fill:#fff1f2,stroke:#e11d48,stroke-width:2px,color:#9f1239,font-weight:bold
 
-    subgraph Data_Ingestion_Pipeline [1. Data Ingestion Pipeline]
+    subgraph Data_Ingestion_Pipeline ["1. Data Ingestion Pipeline  (pipeline.py orchestrates all steps)"]
         direction TB
-        A1[Raw processed transcripts<br/>raw_data/**/*.txt] --> A2[File Parser<br/>file_parser.py]
-        A2 --> A3[Semantic Chunker & Boilerplate Cleaner<br/>chunker.py]
-        A3 --> A4[Local Embeddings Generator<br/>embedder.py]
+        A1["Raw Transcripts<br/>raw_data/**/*_processed.txt"] --> A2["File Parser<br/>file_parser.py<br/><i>filename → metadata dict</i>"]
+        A2 --> A3["Semantic Chunker + Boilerplate Cleaner<br/>chunker.py<br/><i>RCTS split · clean_transcript_text()</i>"]
+        A3 --> A4["ChromaDB Ingestion<br/>vector_store.add_chunks()<br/><i>embedder.py called internally</i>"]
+        A3 -->|"Lexical corpus (all chunks)"| A5["BM25 Index Build<br/>bm25_retriever.build_index()<br/><i>Step 5 in pipeline.py</i>"]
+        A2 -->|"Summary section text"| A6["Structured KPI Extractor<br/>kpi_extractor.py<br/><i>Groq structured output · Pydantic</i>"]
     end
     class Data_Ingestion_Pipeline ingestion
 
-    subgraph Dual_Storage_Layer [2. Dual Storage Layer]
-        direction TB
-        B1[(ChromaDB Vector Store<br/>data/chroma_db)]
-        B2[(BM25 Lexical Index<br/>data/bm25_index)]
-        B3[(SQL KPI Database<br/>data/finance_kpis.db)]
+    subgraph Dual_Storage_Layer ["2. Dual Storage Layer"]
+        direction LR
+        B1[("ChromaDB Vector Store<br/>data/chroma_db<br/><i>384-dim all-MiniLM-L6-v2</i>")]
+        B2[("BM25 Lexical Index<br/>data/bm25_index<br/><i>BM25Okapi serialised</i>")]
+        B3[("SQLite KPI Database<br/>data/finance_kpis.db<br/><i>SQLAlchemy ORM</i>")]
     end
     class Dual_Storage_Layer storage
 
-    A4 -->|Vector + Metadata Chunks| B1
-    A3 -->|Lexical Corpus| B2
-    A2 -->|Summary Section Text| A5[Structured LLM KPI Extractor<br/>kpi_extractor.py]
-    A5 -->|Pydantic ORM Models| B3
+    A4 -->|"Dense vectors + metadata"| B1
+    A5 -->|"Serialised BM25 corpus"| B2
+    A6 -->|"Pydantic ORM models"| B3
 
-    subgraph Intelligence_Core [3. RAG & Agentic Intelligence Core]
+    subgraph Intelligence_Core ["3. RAG & Agentic Intelligence Core"]
         direction TB
-        C1[LangGraph Orchestrator<br/>orchestrator.py]
-        C2[Agent Tools Wrapper<br/>tools.py]
-        C3[Query Router & Transformer<br/>router.py & query_transformer.py]
-        C4[RAG Execution Engine<br/>qa_chain.py]
-        C5[Local Reranker<br/>reranker.py]
-        C6[Groq LPU LLM Core<br/>qwen/qwen3-32b]
+
+        C1["LangGraph Orchestrator<br/>orchestrator.py<br/><i>ReAct · MemorySaver · filter_messages_for_llm()</i>"]
+
+        subgraph Agent_Tools ["Agent Tool Layer  (tools.py)"]
+            direction LR
+            CT1["rag_search<br/><i>Hybrid retrieval · k auto-scale · multi-entity detection</i>"]
+            CT2["get_kpis<br/><i>SQLAlchemy → structured JSON</i>"]
+            CT3["generate_report_sections<br/><i>1 broad retrieval · 1 LLM synthesis · per-section fallback</i>"]
+        end
+
+        subgraph RAG_Engine ["RAG Execution Engine  (qa_chain.py)"]
+            direction TB
+            CE1["Query Router<br/>router.py<br/><i>Classifies: vector / bm25 / hybrid / rerank / multi_entity</i>"]
+            CE2["Query Transformer<br/>query_transformer.py<br/><i>Conversational rewrite · multi-query expansion</i>"]
+            CE3["Hybrid Retriever<br/>hybrid_retriever.py<br/><i>Dense + BM25 → RRF fusion</i>"]
+            CE4["Cross-Encoder Reranker<br/>reranker.py<br/><i>ms-marco-MiniLM-L-6-v2 · local CPU</i>"]
+            CE5["3-Layer Quota Allocator<br/>qa_chain.py<br/><i>3× buffer · strict quota · round-robin overflow · entity-grouped context</i>"]
+        end
+
+        C1 -->|"Tool dispatch (ReAct loop)"| Agent_Tools
+        CT1 -->|"get_answer()"| RAG_Engine
+        CT3 -->|"get_answer(return_context_only=True)"| RAG_Engine
+        CE1 --> CE2
+        CE2 --> CE3
+        CE3 -->|"Candidate pool"| CE4
+        CE4 -->|"Reranked docs"| CE5
+
+        subgraph LLM_Roles ["Groq LPU — qwen/qwen3-32b  (3 distinct roles)"]
+            direction LR
+            L1["Orchestrator LLM<br/><i>orchestrator.py — ReAct reasoning &amp; tool selection</i>"]
+            L2["RAG Synthesis LLM<br/><i>qa_chain.py — context → markdown answer</i>"]
+            L3["Router / Transformer LLM<br/><i>router.py + query_transformer.py — routing &amp; rewrite</i>"]
+        end
+
+        C1 -->|"invoke(filtered_messages)"| L1
+        CE5 -->|"Formatted context block"| L2
+        CE1 -->|"LLM-based routing"| L3
+        CE2 -->|"LLM-based rewrite"| L3
     end
     class Intelligence_Core logic
+    class LLM_Roles llm
 
-    B1 <-->|Cosine Vector Similarity| C4
-    B2 <-->|Lexical Keyword Search| C4
-    B3 <-->|SQLAlchemy Queries| C2
-    C1 <-->|Tool Executions| C2
-    C2 <-->|get_answer| C4
-    C4 <-->|Intent Classification| C3
-    C4 <-->|Candidate Rescoring| C5
-    C4 <-->|Prompt Synthesis & Stream| C6
+    B1 <-->|"Cosine similarity search"| CE3
+    B2 <-->|"BM25 keyword search"| CE3
+    B3 <-->|"SQLAlchemy queries"| CT2
 
-    subgraph User_Facing [4. User Facing Application]
+    subgraph User_Facing ["4. User Facing Application"]
         direction TB
-        D1[FastAPI Server Gateway<br/>server.py]
-        D2[Next.js React Client<br/>frontend/src/app]
+        D1["FastAPI Server Gateway<br/>server.py<br/><i>Uvicorn · async · run_in_threadpool</i>"]
+        D2["Next.js 14 React Client<br/>frontend/src/app<br/><i>TypeScript · App Router · SSR</i>"]
+        D3["SSE Event Bus<br/>events.py<br/><i>emit() → /api/workflow-stream → Live Monitor (/monitor)</i>"]
     end
     class User_Facing ui
 
-    D2 <-->|API requests / JSON| D1
-    D1 <-->|run_agent_query| C1
-    D1 <-->|get_kpis / generate-report| C2
+    D2 <-->|"REST API requests / JSON"| D1
+    D1 -->|"/api/chat — run_agent_query()"| C1
+    D1 -->|"/api/generate-report — run_agent_query()"| C1
+    D1 -->|"/api/kpis — get_kpis.invoke()"| CT2
+    C1 -->|"emit() at every graph step"| D3
+    D3 -->|"SSE stream"| D1
 
-    class A1,A2,A3,A4,A5 ingestion
+    class A1,A2,A3,A4,A5,A6 ingestion
     class B1,B2,B3 storage
-    class C1,C2,C3,C4,C5,C6 logic
-    class D1,D2 ui
+    class C1,CT1,CT2,CT3,CE1,CE2,CE3,CE4,CE5 logic
+    class D1,D2,D3 ui
     linkStyle default stroke:#334155,stroke-width:2px
 ```
 
