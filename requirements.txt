@@ -1,0 +1,50 @@
+# ============================================================
+# Financial Earnings Intelligence Platform
+# requirements.txt — Full Platform (Phase 8)
+# Tested on: Python 3.14, Windows 11
+# ============================================================
+
+# --- LangChain Core (use what's already installed) ---
+langchain>=0.3.0
+langchain-core>=0.3.0
+langchain-community>=0.3.0
+langchain-huggingface>=0.1.0
+langchain-groq>=0.3.0
+langchain-chroma>=0.2.0
+
+# --- LLM & Embeddings ---
+groq>=0.28.0
+sentence-transformers>=3.0.0
+transformers>=4.40.0
+torch>=2.9.0
+huggingface-hub>=0.30.0
+
+# --- Vector Store ---
+chromadb>=0.6.0
+
+# --- BM25 (Phase 2 — install now, use later) ---
+rank-bm25==0.2.2
+
+# --- UI ---
+streamlit>=1.40.0
+
+# --- Utilities ---
+python-dotenv>=1.0.0
+pyyaml>=6.0
+tqdm>=4.60.0
+pandas>=2.0.0
+numpy>=1.26.0
+colorama>=0.4.6
+
+# --- Phase 3-8 (API, Agents, Memory & State) ---
+fastapi>=0.110.0
+uvicorn>=0.30.0
+langgraph>=0.1.0
+pydantic>=2.0.0
+SQLAlchemy>=2.0.0
+
+# ============================================================
+# NOTE: If you have a CUDA GPU, install the CUDA build:
+#   pip install torch>=2.9.0 --index-url https://download.pytorch.org/whl/cu121
+# For CPU-only (default), pip automatically selects the CPU wheel.
+# ============================================================
