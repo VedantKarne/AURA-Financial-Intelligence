@@ -1,0 +1,61 @@
+# ============================================================
+# Financial Earnings Intelligence Platform
+# .gitignore
+# ============================================================
+
+# API keys — NEVER commit
+config/.env
+.env
+
+# Generated data artifacts
+data/
+evaluation/results/*
+!evaluation/results/eval_report.md
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.Python
+*.egg-info/
+dist/
+build/
+*.egg
+
+# Virtual environments
+.venv/
+venv/
+env/
+.env/
+
+# HuggingFace model cache (large, auto-downloaded)
+# Uncomment if you want to exclude the HF cache in the project dir:
+# .cache/
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Node.js / Frontend dependencies
+node_modules/
+frontend/node_modules/
+.next/
+frontend/.next/
+
+# Vector Database storage (heavy)
+chroma/
+
+# Raw dataset files (optional, but recommended if they are large)
+# raw_data/
+

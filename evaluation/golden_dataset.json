@@ -1,0 +1,142 @@
+[
+  {
+    "question": "What was Apple's gross margin in Q3 2024?",
+    "ground_truth": "Apple's gross margin was 46.3% in the June quarter (Q3) of 2024.",
+    "company": "Apple",
+    "year": 2024,
+    "quarter": "Q3"
+  },
+  {
+    "question": "What gross margin guidance did Apple provide for the September quarter of 2024?",
+    "ground_truth": "Apple expected its gross margin for the September quarter to be between 45.5% and 46.5%.",
+    "company": "Apple",
+    "year": 2024,
+    "quarter": "Q3"
+  },
+  {
+    "question": "What was Apple's Services revenue and its year-over-year growth rate in Q3 2024?",
+    "ground_truth": "Services revenue grew 14% year-over-year to an all-time record of $24.2 billion in Q3 2024.",
+    "company": "Apple",
+    "year": 2024,
+    "quarter": "Q3"
+  },
+  {
+    "question": "What was Apple's diluted EPS and its year-over-year growth rate in Q3 2024?",
+    "ground_truth": "Apple's diluted EPS was $1.40, which increased 11% year-over-year.",
+    "company": "Apple",
+    "year": 2024,
+    "quarter": "Q3"
+  },
+  {
+    "question": "How did Apple's iPad segment perform in Q3 2024?",
+    "ground_truth": "Apple's iPad segment revenue reached $7.2 billion, representing a 24% year-over-year growth, driven by the launch of the new iPad Pro and iPad Air.",
+    "company": "Apple",
+    "year": 2024,
+    "quarter": "Q3"
+  },
+  {
+    "question": "What was Microsoft's quarterly revenue and its year-over-year growth rate in Q4 2024?",
+    "ground_truth": "Microsoft reported quarterly revenue of $64.7 billion, which represents a 15% increase year-over-year (16% in constant currency).",
+    "company": "Microsoft",
+    "year": 2024,
+    "quarter": "Q4"
+  },
+  {
+    "question": "What was Microsoft Cloud revenue and its growth rate in Q4 2024?",
+    "ground_truth": "Microsoft Cloud revenue reached $36.8 billion, representing a 21% year-over-year growth (22% in constant currency).",
+    "company": "Microsoft",
+    "year": 2024,
+    "quarter": "Q4"
+  },
+  {
+    "question": "What was Azure and other cloud services revenue growth in Q4 2024 and how many points were from AI?",
+    "ground_truth": "Azure and other cloud services grew 29% year-over-year (30% in constant currency) in Q4 2024, including 8 points from AI services.",
+    "company": "Microsoft",
+    "year": 2024,
+    "quarter": "Q4"
+  },
+  {
+    "question": "What is the annual revenue run rate of GitHub and how much did Copilot account for?",
+    "ground_truth": "GitHub's annual revenue run rate reached $2 billion, with Copilot accounting for over 40% of GitHub's revenue growth in FY24.",
+    "company": "Microsoft",
+    "year": 2024,
+    "quarter": "Q4"
+  },
+  {
+    "question": "What net impact did the Activision acquisition have on Microsoft's Q4 2024 revenue growth, operating income growth, and EPS?",
+    "ground_truth": "The Activision acquisition contributed approximately 3 points to revenue growth, was a 2-point drag on operating income growth, and had a negative $0.06 impact on diluted EPS.",
+    "company": "Microsoft",
+    "year": 2024,
+    "quarter": "Q4"
+  },
+  {
+    "question": "What is Microsoft's Intelligent Cloud segment revenue in Q4 2024?",
+    "ground_truth": "Microsoft's Intelligent Cloud segment revenue was $28.5 billion, increasing 19% year-over-year (20% in constant currency).",
+    "company": "Microsoft",
+    "year": 2024,
+    "quarter": "Q4"
+  },
+  {
+    "question": "How did Microsoft's Productivity and Business Processes segment perform in Q4 2024?",
+    "ground_truth": "Revenue from the Productivity and Business Processes segment was $20.3 billion, growing 11% year-over-year (12% in constant currency).",
+    "company": "Microsoft",
+    "year": 2024,
+    "quarter": "Q4"
+  },
+  {
+    "question": "What was Nvidia's total revenue and growth in Q4 2024?",
+    "ground_truth": "Nvidia's Q4 2024 revenue was $22.1 billion, up 22% sequentially and up 265% year-on-year.",
+    "company": "Nvidia",
+    "year": 2024,
+    "quarter": "Q4"
+  },
+  {
+    "question": "What was Nvidia's Data Center revenue in Q4 2024 and what was the main driver?",
+    "ground_truth": "Data Center revenue reached $18.4 billion, up 409% year-on-year, driven by training and inference of generative AI and large language models.",
+    "company": "Nvidia",
+    "year": 2024,
+    "quarter": "Q4"
+  },
+  {
+    "question": "What percentage of Nvidia's Data Center revenue in the past year was estimated to be for AI inference?",
+    "ground_truth": "Nvidia estimated that approximately 40% of its Data Center revenue in the past year was for AI inference.",
+    "company": "Nvidia",
+    "year": 2024,
+    "quarter": "Q4"
+  },
+  {
+    "question": "What was the annualized revenue run rate of Nvidia's networking business in Q4 2024?",
+    "ground_truth": "Nvidia's networking business exceeded a $13 billion annualized revenue run rate in Q4 2024.",
+    "company": "Nvidia",
+    "year": 2024,
+    "quarter": "Q4"
+  },
+  {
+    "question": "What was the annualized revenue run rate of Nvidia's software and services offerings in Q4 2024?",
+    "ground_truth": "Nvidia's software and services offerings reached an annualized revenue run rate of $1 billion in Q4 2024.",
+    "company": "Nvidia",
+    "year": 2024,
+    "quarter": "Q4"
+  },
+  {
+    "question": "What is Nvidia's revenue outlook and GAAP gross margin guidance for Q1 of fiscal 2025?",
+    "ground_truth": "Nvidia expects Q1 revenue to be $24 billion (plus or minus 2%), with GAAP gross margin expected to be 76.3% (plus or minus 50 basis points).",
+    "company": "Nvidia",
+    "year": 2024,
+    "quarter": "Q4"
+  },
+  {
+    "question": "What was Nvidia's GAAP gross margin in Q4 2024?",
+    "ground_truth": "Nvidia's GAAP gross margin expanded sequentially to 76% in Q4 2024.",
+    "company": "Nvidia",
+    "year": 2024,
+    "quarter": "Q4"
+  },
+  {
+    "question": "What did Jensen Huang say about the reason for Sovereign AI demand?",
+    "ground_truth": "Sovereign AI demand is driven by countries wanting to protect their own data, using it to build large language models in their own language on domestic data to create their own digital intelligence and provision services locally.",
+    "company": "Nvidia",
+    "year": 2024,
+    "quarter": "Q4"
+  }
+]
